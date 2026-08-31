@@ -81,6 +81,14 @@ $packingData = [
             <span>🚚</span>
             Create Shipping
           </a>
+          <a class="nav-item" href="tracking.php">
+            <span>📍</span>
+            Tracking
+          </a>
+          <a class="nav-item" href="shipping-monitoring.php">
+            <span>📦</span>
+            Shipping Monitoring
+          </a>
           <a class="nav-item" href="#">
             <span>🧾</span>
             Packing

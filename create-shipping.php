@@ -47,6 +47,14 @@ $receiverFields = [
             <span>🚚</span>
             Create Shipping
           </a>
+          <a class="nav-item" href="tracking.php">
+            <span>📍</span>
+            Tracking
+          </a>
+          <a class="nav-item" href="shipping-monitoring.php">
+            <span>📦</span>
+            Shipping Monitoring
+          </a>
           <a class="nav-item" href="#">
             <span>🧾</span>
             Packing
@@ -67,7 +75,32 @@ $receiverFields = [
           <button class="primary-btn" type="submit" form="shipping-form">Save Shipping</button>
         </header>
 
-        <form id="shipping-form" class="shipping-form" method="post">
+        <form id="shipping-form" class="shipping-form" method="post" action="save-shipping.php">
+          <section class="form-panel">
+            <div class="section-header">
+              <h3>Informasi Pengiriman</h3>
+            </div>
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="shipping_date">Tanggal Pengiriman</label>
+                <input id="shipping_date" name="shipping_date" type="date" />
+              </div>
+              <div class="field-group">
+                <label for="reservation_code">Kode Reservasi Pengiriman</label>
+                <input id="reservation_code" name="reservation_code" type="text" placeholder="Contoh: RES-2026-001" />
+              </div>
+              <div class="field-group full-width">
+                <label for="status">Status Pengiriman</label>
+                <select id="status" name="status">
+                  <option value="packing">Packing</option>
+                  <option value="transit">Transit</option>
+                  <option value="out_of_delivery">Out of Delivery</option>
+                  <option value="delivered">Delivered</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
           <section class="form-panel">
             <div class="section-header">
               <h3>Informasi Pengirim</h3>
