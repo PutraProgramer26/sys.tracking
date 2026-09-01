@@ -148,30 +148,40 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
                 </tbody>
               </table>
             </section>
+          </div>
 
-            <aside class="reservation-panel signature-stack">
-              <div>
-                <h3>E-Sign Pengirim</h3>
-                <?php if (!empty($signatureImage)): ?>
-                  <div class="sign-box">
-                    <img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" />
-                  </div>
-                <?php else: ?>
-                  <p class="esign-note">Tidak ada tanda tangan.</p>
-                <?php endif; ?>
+          <div class="reservation-signature-row">
+            <div class="reservation-panel signature-panel">
+              <h3>E-Sign Pengirim</h3>
+              <?php if (!empty($signatureImage)): ?>
+                <div class="sign-box large-sign-box">
+                  <img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" />
+                </div>
+              <?php else: ?>
+                <p class="esign-note">Tidak ada tanda tangan.</p>
+              <?php endif; ?>
+              <div class="signature-meta">
+                <span>Nama: <?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span>
+                <span>UID: <?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span>
+                <span>Position: <?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span>
               </div>
+            </div>
 
-              <div>
-                <h3>E-Sign Penerima</h3>
-                <?php if (!empty($receiverSignatureImage)): ?>
-                  <div class="sign-box">
-                    <img src="<?= htmlspecialchars($receiverSignatureImage); ?>" alt="Signature penerima" />
-                  </div>
-                <?php else: ?>
-                  <p class="esign-note">Belum ada tanda tangan penerima.</p>
-                <?php endif; ?>
+            <div class="reservation-panel signature-panel">
+              <h3>E-Sign Penerima</h3>
+              <?php if (!empty($receiverSignatureImage)): ?>
+                <div class="sign-box large-sign-box">
+                  <img src="<?= htmlspecialchars($receiverSignatureImage); ?>" alt="Signature penerima" />
+                </div>
+              <?php else: ?>
+                <p class="esign-note">Belum ada tanda tangan penerima.</p>
+              <?php endif; ?>
+              <div class="signature-meta">
+                <span>Nama: <?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span>
+                <span>UID: <?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span>
+                <span>Position: <?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span>
               </div>
-            </aside>
+            </div>
           </div>
 
           <div class="reservation-actions">

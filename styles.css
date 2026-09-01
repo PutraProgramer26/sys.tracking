@@ -719,6 +719,17 @@ button {
   gap: 18px;
 }
 
+.reservation-signature-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 0 28px 28px;
+}
+
+.signature-panel {
+  min-height: 220px;
+}
+
 .sign-box {
   margin-top: 12px;
   border: 1px solid rgba(148, 163, 184, 0.3);
@@ -727,11 +738,28 @@ button {
   padding: 10px;
 }
 
+.large-sign-box {
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .sign-box img {
   display: block;
   max-width: 100%;
   height: auto;
   border-radius: 8px;
+}
+
+.signature-meta {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.76rem;
 }
 
 .qr-panel {
@@ -750,12 +778,15 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
 }
 
 .qr-box img {
   display: block;
-  width: 180px;
-  height: 180px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
 }
 
@@ -805,6 +836,11 @@ button {
     grid-template-columns: 1fr;
   }
 
+  .reservation-signature-row {
+    grid-template-columns: 1fr;
+    padding: 0 18px 18px;
+  }
+
   .info-grid {
     grid-template-columns: 1fr;
   }
@@ -818,7 +854,7 @@ button {
 @media print {
   @page {
     size: A4;
-    margin: 12mm;
+    margin: 8mm;
   }
 
   html, body {
@@ -882,19 +918,120 @@ button {
 
   .reservation-document {
     width: 100%;
-    max-width: 210mm;
+    max-width: 190mm;
     margin: 0 auto;
     border: 1px solid #dfe7f1;
     box-shadow: none;
     border-radius: 0;
     break-inside: avoid;
     page-break-inside: avoid;
+    font-size: 10px;
+  }
+
+  .reservation-header {
+    padding: 16px 18px 12px;
+  }
+
+  .reservation-header h1 {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .reservation-meta {
+    gap: 6px 12px;
+    font-size: 9px;
   }
 
   .reservation-body {
     display: grid !important;
-    grid-template-columns: minmax(0, 2.2fr) minmax(220px, 320px) !important;
+    grid-template-columns: minmax(0, 2.35fr) minmax(165px, 240px) !important;
+    gap: 12px !important;
+    padding: 14px 18px !important;
     page-break-inside: avoid;
+  }
+
+  .reservation-panel {
+    padding: 10px 10px 8px;
+    border-radius: 10px;
+  }
+
+  .partner-column {
+    padding: 10px;
+  }
+
+  .reservation-panel h3 {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
+
+  .info-grid {
+    gap: 8px 10px;
+  }
+
+  .info-item label {
+    font-size: 7px;
+    letter-spacing: 0.04em;
+  }
+
+  .info-item span {
+    font-size: 9px;
+  }
+
+  .items-table th,
+  .items-table td {
+    padding: 5px 4px;
+    font-size: 8px;
+  }
+
+  .reservation-signature-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    padding: 0 18px 12px !important;
+  }
+
+  .signature-panel {
+    min-height: 120px;
+  }
+
+  .sign-box {
+    margin-top: 8px;
+    padding: 8px;
+  }
+
+  .large-sign-box {
+    min-height: 70px;
+  }
+
+  .sign-box img {
+    max-height: 64px;
+  }
+
+  .signature-meta {
+    margin-top: 8px;
+    gap: 3px;
+    font-size: 8px;
+  }
+
+  .qr-panel {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+
+  .qr-box {
+    width: 96px;
+    height: 96px;
+    padding: 8px;
+  }
+
+  .qr-box img {
+    width: 72px;
+    height: 72px;
+  }
+
+  .qr-link {
+    font-size: 8px;
+    padding: 7px 8px;
   }
 
   .reservation-panel,
