@@ -33,6 +33,7 @@ $baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
 $onlineUrl = rtrim($baseUrl, '/') . '/reservation.php?id=' . (int)$shipment['id'];
 $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' . rawurlencode($onlineUrl);
 $signatureImage = $shipment['sender_signature'] ?? '';
+$receiverSignatureImage = $shipment['receiver_signature'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -148,15 +149,28 @@ $signatureImage = $shipment['sender_signature'] ?? '';
               </table>
             </section>
 
-            <aside class="reservation-panel">
-              <h3>E-Sign Pengirim</h3>
-              <?php if (!empty($signatureImage)): ?>
-                <div class="sign-box">
-                  <img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" />
-                </div>
-              <?php else: ?>
-                <p class="esign-note">Tidak ada tanda tangan.</p>
-              <?php endif; ?>
+            <aside class="reservation-panel signature-stack">
+              <div>
+                <h3>E-Sign Pengirim</h3>
+                <?php if (!empty($signatureImage)): ?>
+                  <div class="sign-box">
+                    <img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" />
+                  </div>
+                <?php else: ?>
+                  <p class="esign-note">Tidak ada tanda tangan.</p>
+                <?php endif; ?>
+              </div>
+
+              <div>
+                <h3>E-Sign Penerima</h3>
+                <?php if (!empty($receiverSignatureImage)): ?>
+                  <div class="sign-box">
+                    <img src="<?= htmlspecialchars($receiverSignatureImage); ?>" alt="Signature penerima" />
+                  </div>
+                <?php else: ?>
+                  <p class="esign-note">Belum ada tanda tangan penerima.</p>
+                <?php endif; ?>
+              </div>
             </aside>
           </div>
 

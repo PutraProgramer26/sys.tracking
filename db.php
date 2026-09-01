@@ -41,6 +41,7 @@ function ensureDatabaseSchema(mysqli $connection): void
     ) ENGINE=InnoDB");
 
     ensureColumnExists($connection, 'shipments', 'sender_signature', 'LONGTEXT NULL');
+    ensureColumnExists($connection, 'shipments', 'receiver_signature', 'LONGTEXT NULL');
     ensureColumnExists($connection, 'shipment_items', 'category', "VARCHAR(50) NOT NULL DEFAULT 'consumables'");
     ensureColumnExists($connection, 'shipment_items', 'category_alt', 'VARCHAR(100) NULL');
     ensureColumnExists($connection, 'shipment_items', 'note', 'VARCHAR(255) NULL');

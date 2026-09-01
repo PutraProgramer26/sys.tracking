@@ -522,6 +522,29 @@ button {
 
 .status-form {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 290px;
+}
+
+.delivery-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.status-input {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: #f8fafc;
+  font: inherit;
+}
+
+.status-controls {
+  display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
@@ -539,6 +562,23 @@ button {
 .small-btn {
   padding: 10px 12px;
   font-size: 0.76rem;
+}
+
+.view-doc-btn {
+  min-height: 40px;
+}
+
+.small-signature {
+  grid-column: 1 / -1;
+}
+
+.delivery-signature {
+  width: 100%;
+  min-height: 90px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 10px;
+  background: white;
+  cursor: crosshair;
 }
 
 .monitoring-table-wrap {
@@ -673,6 +713,12 @@ button {
   background: transparent;
 }
 
+.signature-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
 .sign-box {
   margin-top: 12px;
   border: 1px solid rgba(148, 163, 184, 0.3);
@@ -761,6 +807,111 @@ button {
 
   .info-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body {
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .sidebar,
+  .sidebar-toggle,
+  .reservation-actions,
+  .topbar,
+  .nav-menu,
+  .sidebar-footer,
+  .brand {
+    display: none !important;
+  }
+
+  .dashboard-shell {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: auto !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .main-panel {
+    display: block !important;
+    width: 100% !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    min-height: auto !important;
+    height: auto !important;
+  }
+
+  .reservation-page {
+    display: block !important;
+    width: 100% !important;
+    max-width: 210mm !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  .reservation-document {
+    width: 100%;
+    max-width: 210mm;
+    margin: 0 auto;
+    border: 1px solid #dfe7f1;
+    box-shadow: none;
+    border-radius: 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .reservation-body {
+    display: grid !important;
+    grid-template-columns: minmax(0, 2.2fr) minmax(220px, 320px) !important;
+    page-break-inside: avoid;
+  }
+
+  .reservation-panel,
+  .partner-column,
+  .qr-panel,
+  .items-table,
+  .sign-box,
+  .reservation-header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .qr-link,
+  .primary-btn,
+  .secondary-btn,
+  .btn-link {
+    display: none !important;
   }
 }
 
