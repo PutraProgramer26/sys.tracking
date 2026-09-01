@@ -1,19 +1,11 @@
 <?php
-$storageFile = __DIR__ . '/data/shipments.json';
+require __DIR__ . '/auth.php';
+requireLogin();
+require __DIR__ . '/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: create-shipping.php');
     exit;
-}
-
-$existing = [];
-if (file_exists($storageFile)) {
-    $content = file_get_contents($storageFile);
-    $existing = $content !== '' ? json_decode($content, true) : [];
-}
-
-if (!is_array($existing)) {
-    $existing = [];
 }
 
 $goods = [];
@@ -36,23 +28,52 @@ if (isset($_POST['goods_name']) && is_array($_POST['goods_name'])) {
     }
 }
 
-$newShipment = [
-    'shipping_date' => $_POST['shipping_date'] ?? '',
-    'reservation_code' => $_POST['reservation_code'] ?? '',
-    'status' => $_POST['status'] ?? 'packing',
-    'sender_name' => $_POST['sender_name'] ?? '',
-    'sender_uid' => $_POST['sender_uid'] ?? '',
-    'sender_position' => $_POST['sender_position'] ?? '',
-    'sender_location' => $_POST['sender_location'] ?? '',
-    'receiver_name' => $_POST['receiver_name'] ?? '',
-    'receiver_uid' => $_POST['receiver_uid'] ?? '',
-    'receiver_position' => $_POST['receiver_position'] ?? '',
-    'receiver_location' => $_POST['receiver_location'] ?? '',
-    'goods' => $goods
-];
+$shippingDate = $_POST['shipping_date'] ?? null;
+$reservationCode = trim((string)($_POST['reservation_code'] ?? ''));
+$status = $_POST['status'] ?? 'packing';
+$senderName = trim((string)($_POST['sender_name'] ?? ''));
+$senderUid = trim((string)($_POST['sender_uid'] ?? ''));
+$senderPosition = trim((string)($_POST['sender_position'] ?? ''));
+$senderLocation = trim((string)($_POST['sender_location'] ?? ''));
+$receiverName = trim((string)($_POST['receiver_name'] ?? ''));
+$receiverUid = trim((string)($_POST['receiver_uid'] ?? ''));
+$receiverPosition = trim((string)($_POST['receiver_position'] ?? ''));
+$receiverLocation = trim((string)($_POST['receiver_location'] ?? ''));
 
-$existing[] = $newShipment;
-file_put_contents($storageFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+$connection = getDbConnection();
+
+$stmt = $connection->prepare("INSERT INTO shipments (shipping_date, reservation_code, status, sender_name, sender_uid, sender_position, sender_location, receiver_name, receiver_uid, receiver_position, receiver_location) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param(
+    'sssssssssss',
+    $shippingDate,
+    $reservationCode,
+    $status,
+    $senderName,
+    $senderUid,
+    $senderPosition,
+    $senderLocation,
+    $receiverName,
+    $receiverUid,
+    $receiverPosition,
+    $receiverLocation
+);
+$stmt->execute();
+$shipmentId = $stmt->insert_id;
+$stmt->close();
+
+if (!empty($goods)) {
+    $itemsStmt = $connection->prepare("INSERT INTO shipment_items (shipment_id, name, qty, unit) VALUES (?, ?, ?, ?)");
+    foreach ($goods as $item) {
+        $name = $item['name'];
+        $qty = (int)$item['qty'];
+        $unit = $item['unit'];
+        $itemsStmt->bind_param('isi', $shipmentId, $name, $qty, $unit);
+        $itemsStmt->execute();
+    }
+    $itemsStmt->close();
+}
+
+$connection->close();
 
 header('Location: tracking.php');
 exit;

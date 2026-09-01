@@ -1,15 +1,7 @@
 <?php
-$storageFile = __DIR__ . '/data/shipments.json';
-$shipments = [];
-
-if (file_exists($storageFile)) {
-    $content = file_get_contents($storageFile);
-    $shipments = $content !== '' ? json_decode($content, true) : [];
-}
-
-if (!is_array($shipments)) {
-    $shipments = [];
-}
+require __DIR__ . '/auth.php';
+requireLogin();
+require __DIR__ . '/db.php';
 
 $statusOptions = [
     'packing' => 'Packing',
@@ -19,17 +11,45 @@ $statusOptions = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-    $index = (int) ($_POST['shipment_index'] ?? -1);
+    $shipmentId = (int) ($_POST['shipment_id'] ?? -1);
     $newStatus = $_POST['status'] ?? 'packing';
 
-    if ($index >= 0 && isset($shipments[$index])) {
-        $shipments[$index]['status'] = $newStatus;
-        file_put_contents($storageFile, json_encode($shipments, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    if ($shipmentId > 0) {
+        $connection = getDbConnection();
+        $statement = $connection->prepare('UPDATE shipments SET status = ? WHERE id = ?');
+        $statement->bind_param('si', $newStatus, $shipmentId);
+        $statement->execute();
+        $statement->close();
+        $connection->close();
     }
 
     header('Location: shipping-monitoring.php');
     exit;
 }
+
+$connection = getDbConnection();
+$shipments = [];
+
+$result = $connection->query("SELECT * FROM shipments ORDER BY id DESC");
+if ($result) {
+    while ($shipment = $result->fetch_assoc()) {
+        $shipmentId = (int)$shipment['id'];
+        $itemsStmt = $connection->prepare("SELECT name, qty FROM shipment_items WHERE shipment_id = ? ORDER BY id ASC");
+        $itemsStmt->bind_param('i', $shipmentId);
+        $itemsStmt->execute();
+        $items = $itemsStmt->get_result();
+
+        $shipment['goods'] = [];
+        while ($item = $items->fetch_assoc()) {
+            $shipment['goods'][] = $item;
+        }
+
+        $shipments[] = $shipment;
+        $itemsStmt->close();
+    }
+}
+
+$connection->close();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -50,28 +70,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
           <div>
             <h1>Tracking Material</h1>
           </div>
+          <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Hide sidebar">⟨</button>
         </div>
 
         <nav class="nav-menu">
           <a class="nav-item" href="index.php">
             <span>📊</span>
-            Dashboard
+            <span class="nav-label">Dashboard</span>
           </a>
           <a class="nav-item" href="create-shipping.php">
             <span>🚚</span>
-            Create Shipping
+            <span class="nav-label">Create Shipping</span>
           </a>
           <a class="nav-item" href="tracking.php">
             <span>📍</span>
-            Tracking
+            <span class="nav-label">Tracking</span>
           </a>
           <a class="nav-item active" href="shipping-monitoring.php">
             <span>📦</span>
-            Shipping Monitoring
+            <span class="nav-label">Shipping Monitoring</span>
           </a>
           <a class="nav-item" href="#">
             <span>⚙️</span>
-            Setting
+            <span class="nav-label">Setting</span>
           </a>
         </nav>
       </aside>
@@ -130,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                     </td>
                     <td>
                       <form method="post" class="status-form">
-                        <input type="hidden" name="shipment_index" value="<?= htmlspecialchars((string)$index); ?>" />
+                        <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)($shipment['id'] ?? $index)); ?>" />
                         <input type="hidden" name="update_status" value="1" />
                         <select name="status" class="status-select">
                           <?php foreach ($statusOptions as $value => $label): ?>
@@ -148,5 +169,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         </section>
       </main>
     </div>
+    <script src="sidebar.js"></script>
   </body>
 </html>

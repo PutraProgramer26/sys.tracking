@@ -1,15 +1,31 @@
 <?php
-$storageFile = __DIR__ . '/data/shipments.json';
+require __DIR__ . '/auth.php';
+requireLogin();
+require __DIR__ . '/db.php';
+
+$connection = getDbConnection();
 $shipments = [];
 
-if (file_exists($storageFile)) {
-    $content = file_get_contents($storageFile);
-    $shipments = $content !== '' ? json_decode($content, true) : [];
+$result = $connection->query("SELECT * FROM shipments ORDER BY id DESC");
+if ($result) {
+    while ($shipment = $result->fetch_assoc()) {
+        $shipmentId = (int)$shipment['id'];
+        $itemsResult = $connection->prepare("SELECT name, qty, unit FROM shipment_items WHERE shipment_id = ? ORDER BY id ASC");
+        $itemsResult->bind_param('i', $shipmentId);
+        $itemsResult->execute();
+        $items = $itemsResult->get_result();
+
+        $shipment['goods'] = [];
+        while ($item = $items->fetch_assoc()) {
+            $shipment['goods'][] = $item;
+        }
+
+        $shipments[] = $shipment;
+        $itemsResult->close();
+    }
 }
 
-if (!is_array($shipments)) {
-    $shipments = [];
-}
+$connection->close();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -30,28 +46,29 @@ if (!is_array($shipments)) {
           <div>
             <h1>Tracking Material</h1>
           </div>
+          <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Hide sidebar">⟨</button>
         </div>
 
         <nav class="nav-menu">
           <a class="nav-item" href="index.php">
             <span>📊</span>
-            Dashboard
+            <span class="nav-label">Dashboard</span>
           </a>
           <a class="nav-item" href="create-shipping.php">
             <span>🚚</span>
-            Create Shipping
+            <span class="nav-label">Create Shipping</span>
           </a>
           <a class="nav-item active" href="tracking.php">
             <span>📍</span>
-            Tracking
+            <span class="nav-label">Tracking</span>
           </a>
           <a class="nav-item" href="#">
             <span>🧾</span>
-            Packing
+            <span class="nav-label">Packing</span>
           </a>
           <a class="nav-item" href="#">
             <span>⚙️</span>
-            Setting
+            <span class="nav-label">Setting</span>
           </a>
         </nav>
       </aside>
@@ -131,5 +148,6 @@ if (!is_array($shipments)) {
         </section>
       </main>
     </div>
+    <script src="sidebar.js"></script>
   </body>
 </html>

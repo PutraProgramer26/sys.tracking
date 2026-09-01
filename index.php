@@ -1,4 +1,7 @@
 <?php
+require __DIR__ . '/auth.php';
+requireLogin();
+
 $stats = [
     [
         'label' => 'Material Diterima',
@@ -66,36 +69,37 @@ $packingData = [
           <div>
             <h1>Tracking Material</h1>
           </div>
+          <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Hide sidebar">⟨</button>
         </div>
 
         <nav class="nav-menu">
           <a class="nav-item active" href="index.php">
             <span>📊</span>
-            Dashboard
+            <span class="nav-label">Dashboard</span>
           </a>
           <a class="nav-item" href="#">
             <span>📦</span>
-            Material
+            <span class="nav-label">Material</span>
           </a>
           <a class="nav-item" href="create-shipping.php">
             <span>🚚</span>
-            Create Shipping
+            <span class="nav-label">Create Shipping</span>
           </a>
           <a class="nav-item" href="tracking.php">
             <span>📍</span>
-            Tracking
+            <span class="nav-label">Tracking</span>
           </a>
           <a class="nav-item" href="shipping-monitoring.php">
             <span>📦</span>
-            Shipping Monitoring
+            <span class="nav-label">Shipping Monitoring</span>
           </a>
           <a class="nav-item" href="#">
             <span>🧾</span>
-            Packing
+            <span class="nav-label">Packing</span>
           </a>
           <a class="nav-item" href="#">
             <span>⚙️</span>
-            Setting
+            <span class="nav-label">Setting</span>
           </a>
         </nav>
       </aside>
@@ -109,6 +113,7 @@ $packingData = [
           <div class="topbar-actions">
             <button class="ghost-btn">Filter</button>
             <button class="primary-btn">Export</button>
+            <a class="ghost-btn" href="logout.php" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Logout</a>
           </div>
         </header>
 
@@ -168,6 +173,7 @@ $packingData = [
       </main>
     </div>
 
+    <script src="sidebar.js"></script>
     <script>
       const receivedChart = document.getElementById('receivedChart');
       const shippingChart = document.getElementById('shippingChart');
