@@ -1,0 +1,172 @@
+<?php
+require __DIR__ . '/auth.php';
+requireLogin();
+require __DIR__ . '/db.php';
+
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id <= 0) {
+    header('Location: tracking.php');
+    exit;
+}
+
+$connection = getDbConnection();
+$stmt = $connection->prepare("SELECT * FROM shipments WHERE id = ? LIMIT 1");
+$stmt->bind_param('i', $id);
+$stmt->execute();
+$shipment = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$shipment) {
+    $connection->close();
+    header('Location: tracking.php');
+    exit;
+}
+
+$itemsStmt = $connection->prepare("SELECT name, qty, unit, category, category_alt, note FROM shipment_items WHERE shipment_id = ? ORDER BY id ASC");
+$itemsStmt->bind_param('i', $id);
+$itemsStmt->execute();
+$items = $itemsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$itemsStmt->close();
+$connection->close();
+
+$baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
+$onlineUrl = rtrim($baseUrl, '/') . '/reservation.php?id=' . (int)$shipment['id'];
+$qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' . rawurlencode($onlineUrl);
+$signatureImage = $shipment['sender_signature'] ?? '';
+?>
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Surat Reservasi - <?= htmlspecialchars($shipment['reservation_code'] ?? ''); ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="dashboard-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">TM</div>
+          <div>
+            <h1>Tracking Material</h1>
+          </div>
+          <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Hide sidebar">⟨</button>
+        </div>
+
+        <nav class="nav-menu">
+          <a class="nav-item" href="index.php"><span>📊</span><span class="nav-label">Dashboard</span></a>
+          <a class="nav-item" href="create-shipping.php"><span>🚚</span><span class="nav-label">Create Shipping</span></a>
+          <a class="nav-item" href="tracking.php"><span>📍</span><span class="nav-label">Tracking</span></a>
+          <a class="nav-item" href="shipping-monitoring.php"><span>📦</span><span class="nav-label">Shipping Monitoring</span></a>
+          <a class="nav-item" href="#"><span>🧾</span><span class="nav-label">Packing</span></a>
+          <a class="nav-item" href="#"><span>⚙️</span><span class="nav-label">Setting</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <a class="sidebar-logout" href="logout.php"><span>🚪</span><span class="nav-label">Logout</span></a>
+        </div>
+      </aside>
+
+      <main class="main-panel reservation-page">
+        <div class="reservation-document">
+          <header class="reservation-header">
+            <h1>Surat Reservasi / Pengiriman Barang</h1>
+            <div class="reservation-meta">
+              <span>Kode Reservasi: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
+              <span>Tanggal: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
+              <span>Status: <?= htmlspecialchars(ucfirst($shipment['status'] ?? 'packing')); ?></span>
+            </div>
+          </header>
+
+          <div class="reservation-body">
+            <section class="reservation-panel two-column-panel">
+              <div class="partner-column">
+                <h3>Data Pengirim</h3>
+                <div class="info-grid">
+                  <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['sender_location'] ?? '-'); ?></span></div>
+                </div>
+              </div>
+
+              <div class="partner-column">
+                <h3>Data Penerima</h3>
+                <div class="info-grid">
+                  <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span></div>
+                </div>
+              </div>
+            </section>
+
+            <aside class="reservation-panel qr-panel">
+              <h3>Barcode / QR Online</h3>
+              <div class="qr-box">
+                <img src="<?= htmlspecialchars($qrUrl); ?>" alt="QR barcode reservation" />
+              </div>
+              <a class="qr-link" href="<?= htmlspecialchars($onlineUrl); ?>" target="_blank" rel="noopener noreferrer">Lihat Online</a>
+            </aside>
+          </div>
+
+          <div class="reservation-body" style="padding-top: 0;">
+            <section class="reservation-panel">
+              <h3>Detail Barang</h3>
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Nama Barang</th>
+                    <th>Qty</th>
+                    <th>Satuan</th>
+                    <th>Item Type</th>
+                    <th>Kategori</th>
+                    <th>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php if (empty($items)): ?>
+                    <tr>
+                      <td colspan="6">Tidak ada data barang.</td>
+                    </tr>
+                  <?php else: ?>
+                    <?php foreach ($items as $item): ?>
+                      <tr>
+                        <td><?= htmlspecialchars($item['name'] ?? '-'); ?></td>
+                        <td><?= htmlspecialchars((string)($item['qty'] ?? 0)); ?></td>
+                        <td><?= htmlspecialchars($item['unit'] ?? '-'); ?></td>
+                        <td><?= htmlspecialchars($item['category'] ?? '-'); ?></td>
+                        <td><?= htmlspecialchars($item['category_alt'] ?? '-'); ?></td>
+                        <td><?= htmlspecialchars($item['note'] ?? '-'); ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </section>
+
+            <aside class="reservation-panel">
+              <h3>E-Sign Pengirim</h3>
+              <?php if (!empty($signatureImage)): ?>
+                <div class="sign-box">
+                  <img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" />
+                </div>
+              <?php else: ?>
+                <p class="esign-note">Tidak ada tanda tangan.</p>
+              <?php endif; ?>
+            </aside>
+          </div>
+
+          <div class="reservation-actions">
+            <a class="primary-btn btn-link" href="tracking.php">Kembali ke Tracking</a>
+            <button class="secondary-btn" type="button" onclick="window.print()">Print / Cetak</button>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="sidebar.js"></script>
+  </body>
+</html>

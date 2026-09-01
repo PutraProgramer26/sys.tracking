@@ -1,6 +1,14 @@
 <?php
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+function ensureColumnExists(mysqli $connection, string $table, string $column, string $definition): void
+{
+    $result = $connection->query("SHOW COLUMNS FROM `{$table}` LIKE '{$column}'");
+    if ($result && $result->num_rows === 0) {
+        $connection->query("ALTER TABLE `{$table}` ADD COLUMN `{$column}` {$definition}");
+    }
+}
+
 function ensureDatabaseSchema(mysqli $connection): void
 {
     $connection->query("CREATE TABLE IF NOT EXISTS shipments (
@@ -16,6 +24,7 @@ function ensureDatabaseSchema(mysqli $connection): void
         receiver_uid VARCHAR(100) NULL,
         receiver_position VARCHAR(255) NULL,
         receiver_location VARCHAR(255) NULL,
+        sender_signature LONGTEXT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB");
 
@@ -25,8 +34,16 @@ function ensureDatabaseSchema(mysqli $connection): void
         name VARCHAR(255) NOT NULL,
         qty INT NOT NULL DEFAULT 0,
         unit VARCHAR(50) NOT NULL,
+        category VARCHAR(50) NOT NULL DEFAULT 'consumables',
+        category_alt VARCHAR(100) NULL,
+        note VARCHAR(255) NULL,
         CONSTRAINT fk_shipment_items_shipment FOREIGN KEY (shipment_id) REFERENCES shipments(id) ON DELETE CASCADE
     ) ENGINE=InnoDB");
+
+    ensureColumnExists($connection, 'shipments', 'sender_signature', 'LONGTEXT NULL');
+    ensureColumnExists($connection, 'shipment_items', 'category', "VARCHAR(50) NOT NULL DEFAULT 'consumables'");
+    ensureColumnExists($connection, 'shipment_items', 'category_alt', 'VARCHAR(100) NULL');
+    ensureColumnExists($connection, 'shipment_items', 'note', 'VARCHAR(255) NULL');
 
     $connection->query("CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,

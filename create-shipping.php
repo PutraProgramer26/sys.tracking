@@ -68,6 +68,13 @@ $receiverFields = [
             <span class="nav-label">Setting</span>
           </a>
         </nav>
+
+        <div class="sidebar-footer">
+          <a class="sidebar-logout" href="logout.php">
+            <span>🚪</span>
+            <span class="nav-label">Logout</span>
+          </a>
+        </div>
       </aside>
 
       <main class="main-panel">
@@ -78,6 +85,14 @@ $receiverFields = [
           </div>
           <button class="primary-btn" type="submit" form="shipping-form">Save Shipping</button>
         </header>
+
+        <?php if (isset($_GET['error']) && $_GET['error'] === 'signature_required'): ?>
+          <div class="form-message error">Pengirim wajib melakukan E-Sign sebelum menyimpan data pengiriman.</div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] === 'missing_required_fields'): ?>
+          <div class="form-message error">Silakan lengkapi data pengiriman dan minimal satu item barang sebelum menyimpan.</div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] === 'save_failed'): ?>
+          <div class="form-message error">Data gagal disimpan. Periksa koneksi database atau lengkapi semua field yang diperlukan.</div>
+        <?php endif; ?>
 
         <form id="shipping-form" class="shipping-form" method="post" action="save-shipping.php">
           <section class="form-panel">
@@ -153,8 +168,43 @@ $receiverFields = [
                   <label>Satuan</label>
                   <input type="text" name="goods_unit[]" placeholder="pcs, box, meter" />
                 </div>
+                <div class="field-group goods-category">
+                  <label>Item Type</label>
+                  <select name="goods_category[]">
+                    <option value="consumables">Consumables</option>
+                    <option value="tools">Tools</option>
+                  </select>
+                </div>
+                <div class="field-group goods-category-alt">
+                  <label>Kategori</label>
+                  <select name="goods_category_alt[]">
+                    <option value="">Pilih kategori</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="General">General</option>
+                    <option value="Safety">Safety</option>
+                    <option value="Electrical">Electrical</option>
+                  </select>
+                </div>
+                <div class="field-group goods-note">
+                  <label>Keterangan</label>
+                  <input type="text" name="goods_note[]" placeholder="Contoh: prioritas tinggi, alat ukuran, dll" />
+                </div>
                 <button type="button" class="remove-btn" aria-label="Hapus barang">Hapus</button>
               </div>
+            </div>
+          </section>
+
+          <section class="form-panel">
+            <div class="section-header">
+              <h3>E-Sign Pengirim</h3>
+            </div>
+            <div class="esign-panel">
+              <p class="esign-note">Pengirim wajib menandatangani area berikut sebelum menekan tombol Save Shipping.</p>
+              <canvas id="signatureCanvas" width="720" height="220" aria-label="Signature canvas"></canvas>
+              <div class="esign-actions">
+                <button type="button" class="ghost-btn" id="clear-signature">Clear</button>
+              </div>
+              <input type="hidden" name="sender_signature" id="sender_signature" />
             </div>
           </section>
         </form>
@@ -182,6 +232,27 @@ $receiverFields = [
             <label>Satuan</label>
             <input type="text" name="goods_unit[]" placeholder="pcs, box, meter" />
           </div>
+          <div class="field-group goods-category">
+            <label>Item Type</label>
+            <select name="goods_category[]">
+              <option value="consumables">Consumables</option>
+              <option value="tools">Tools</option>
+            </select>
+          </div>
+          <div class="field-group goods-category-alt">
+            <label>Kategori</label>
+            <select name="goods_category_alt[]">
+              <option value="">Pilih kategori</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="General">General</option>
+              <option value="Safety">Safety</option>
+              <option value="Electrical">Electrical</option>
+            </select>
+          </div>
+          <div class="field-group goods-note">
+            <label>Keterangan</label>
+            <input type="text" name="goods_note[]" placeholder="Contoh: prioritas tinggi, alat ukuran, dll" />
+          </div>
           <button type="button" class="remove-btn" aria-label="Hapus barang">Hapus</button>
         `;
 
@@ -206,6 +277,88 @@ $receiverFields = [
             button.closest('.goods-row').remove();
           }
         });
+      });
+
+      const signatureCanvas = document.getElementById('signatureCanvas');
+      const signatureInput = document.getElementById('sender_signature');
+      const clearSignatureBtn = document.getElementById('clear-signature');
+      const shippingForm = document.getElementById('shipping-form');
+      const ctx = signatureCanvas.getContext('2d');
+
+      ctx.lineWidth = 2.2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#0f172a';
+
+      let isDrawing = false;
+
+      function getCanvasPoint(event) {
+        const rect = signatureCanvas.getBoundingClientRect();
+        const scaleX = signatureCanvas.width / rect.width;
+        const scaleY = signatureCanvas.height / rect.height;
+        const clientX = event.clientX || (event.touches && event.touches[0]?.clientX) || 0;
+        const clientY = event.clientY || (event.touches && event.touches[0]?.clientY) || 0;
+
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      function startDraw(event) {
+        isDrawing = true;
+        const point = getCanvasPoint(event);
+        ctx.beginPath();
+        ctx.moveTo(point.x, point.y);
+        ctx.lineTo(point.x, point.y);
+        ctx.stroke();
+      }
+
+      function draw(event) {
+        if (!isDrawing) {
+          return;
+        }
+
+        const point = getCanvasPoint(event);
+        ctx.lineTo(point.x, point.y);
+        ctx.stroke();
+      }
+
+      function stopDraw() {
+        isDrawing = false;
+        ctx.beginPath();
+        signatureInput.value = signatureCanvas.toDataURL('image/png');
+      }
+
+      signatureCanvas.addEventListener('pointerdown', startDraw);
+      signatureCanvas.addEventListener('pointermove', draw);
+      signatureCanvas.addEventListener('pointerup', stopDraw);
+      signatureCanvas.addEventListener('pointerleave', stopDraw);
+      signatureCanvas.addEventListener('pointercancel', stopDraw);
+
+      signatureCanvas.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        startDraw(event.touches[0]);
+      }, { passive: false });
+
+      signatureCanvas.addEventListener('touchmove', (event) => {
+        event.preventDefault();
+        draw(event.touches[0]);
+      }, { passive: false });
+
+      signatureCanvas.addEventListener('touchend', stopDraw, { passive: true });
+
+      clearSignatureBtn.addEventListener('click', () => {
+        ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+        signatureInput.value = '';
+      });
+
+      shippingForm.addEventListener('submit', function (event) {
+        if (!signatureInput.value || signatureInput.value === 'data:,') {
+          event.preventDefault();
+          window.alert('Pengirim wajib melakukan E-Sign terlebih dahulu sebelum Save Shipping.');
+          return;
+        }
       });
     </script>
   </body>

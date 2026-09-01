@@ -78,6 +78,10 @@ $connection->close();
             <span>📊</span>
             <span class="nav-label">Dashboard</span>
           </a>
+          <a class="nav-item" href="#">
+            <span>📦</span>
+            <span class="nav-label">Material</span>
+          </a>
           <a class="nav-item" href="create-shipping.php">
             <span>🚚</span>
             <span class="nav-label">Create Shipping</span>
@@ -91,10 +95,21 @@ $connection->close();
             <span class="nav-label">Shipping Monitoring</span>
           </a>
           <a class="nav-item" href="#">
+            <span>🧾</span>
+            <span class="nav-label">Packing</span>
+          </a>
+          <a class="nav-item" href="#">
             <span>⚙️</span>
             <span class="nav-label">Setting</span>
           </a>
         </nav>
+
+        <div class="sidebar-footer">
+          <a class="sidebar-logout" href="logout.php">
+            <span>🚪</span>
+            <span class="nav-label">Logout</span>
+          </a>
+        </div>
       </aside>
 
       <main class="main-panel">

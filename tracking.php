@@ -54,6 +54,10 @@ $connection->close();
             <span>📊</span>
             <span class="nav-label">Dashboard</span>
           </a>
+          <a class="nav-item" href="#">
+            <span>📦</span>
+            <span class="nav-label">Material</span>
+          </a>
           <a class="nav-item" href="create-shipping.php">
             <span>🚚</span>
             <span class="nav-label">Create Shipping</span>
@@ -61,6 +65,10 @@ $connection->close();
           <a class="nav-item active" href="tracking.php">
             <span>📍</span>
             <span class="nav-label">Tracking</span>
+          </a>
+          <a class="nav-item" href="shipping-monitoring.php">
+            <span>📦</span>
+            <span class="nav-label">Shipping Monitoring</span>
           </a>
           <a class="nav-item" href="#">
             <span>🧾</span>
@@ -71,6 +79,13 @@ $connection->close();
             <span class="nav-label">Setting</span>
           </a>
         </nav>
+
+        <div class="sidebar-footer">
+          <a class="sidebar-logout" href="logout.php">
+            <span>🚪</span>
+            <span class="nav-label">Logout</span>
+          </a>
+        </div>
       </aside>
 
       <main class="main-panel">
@@ -107,12 +122,13 @@ $connection->close();
                 <th>Penerima</th>
                 <th>Barang</th>
                 <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
               <?php if (empty($shipments)): ?>
                 <tr>
-                  <td colspan="6" class="empty-state">Belum ada data pengiriman.</td>
+                  <td colspan="7" class="empty-state">Belum ada data pengiriman.</td>
                 </tr>
               <?php else: ?>
                 <?php foreach ($shipments as $shipment): ?>
@@ -139,6 +155,9 @@ $connection->close();
                       <span class="status-pill <?= htmlspecialchars($shipment['status'] ?? 'sent'); ?>">
                         <?= htmlspecialchars(ucfirst($shipment['status'] ?? 'sent')); ?>
                       </span>
+                    </td>
+                    <td>
+                      <a class="inline-link" href="reservation.php?id=<?= (int)($shipment['id'] ?? 0); ?>">Lihat Surat</a>
                     </td>
                   </tr>
                 <?php endforeach; ?>
