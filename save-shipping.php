@@ -47,6 +47,7 @@ $receiverUid = trim((string)($_POST['receiver_uid'] ?? ''));
 $receiverPosition = trim((string)($_POST['receiver_position'] ?? ''));
 $receiverLocation = trim((string)($_POST['receiver_location'] ?? ''));
 $senderSignature = trim((string)($_POST['sender_signature'] ?? ''));
+$updateId = (int)($_POST['update_id'] ?? 0);
 
 if ($senderSignature === '') {
     header('Location: create-shipping.php?error=signature_required');
@@ -60,26 +61,51 @@ if ($reservationCode === '' || $senderName === '' || $receiverName === '' || emp
 
 try {
     $connection = getDbConnection();
+    $connection->begin_transaction();
 
-    $stmt = $connection->prepare("INSERT INTO shipments (shipping_date, reservation_code, status, sender_name, sender_uid, sender_position, sender_location, receiver_name, receiver_uid, receiver_position, receiver_location, sender_signature) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param(
-        'ssssssssssss',
-        $shippingDate,
-        $reservationCode,
-        $status,
-        $senderName,
-        $senderUid,
-        $senderPosition,
-        $senderLocation,
-        $receiverName,
-        $receiverUid,
-        $receiverPosition,
-        $receiverLocation,
-        $senderSignature
-    );
-    $stmt->execute();
-    $shipmentId = $stmt->insert_id;
-    $stmt->close();
+    if ($updateId > 0) {
+        $stmt = $connection->prepare("UPDATE shipments SET shipping_date = ?, reservation_code = ?, status = ?, sender_name = ?, sender_uid = ?, sender_position = ?, sender_location = ?, receiver_name = ?, receiver_uid = ?, receiver_position = ?, receiver_location = ?, sender_signature = ? WHERE id = ?");
+        $stmt->bind_param(
+            'ssssssssssssi',
+            $shippingDate,
+            $reservationCode,
+            $status,
+            $senderName,
+            $senderUid,
+            $senderPosition,
+            $senderLocation,
+            $receiverName,
+            $receiverUid,
+            $receiverPosition,
+            $receiverLocation,
+            $senderSignature,
+            $updateId
+        );
+        $stmt->execute();
+        $stmt->close();
+        $shipmentId = $updateId;
+        $connection->query('DELETE FROM shipment_items WHERE shipment_id = ' . $shipmentId);
+    } else {
+        $stmt = $connection->prepare("INSERT INTO shipments (shipping_date, reservation_code, status, sender_name, sender_uid, sender_position, sender_location, receiver_name, receiver_uid, receiver_position, receiver_location, sender_signature) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param(
+            'ssssssssssss',
+            $shippingDate,
+            $reservationCode,
+            $status,
+            $senderName,
+            $senderUid,
+            $senderPosition,
+            $senderLocation,
+            $receiverName,
+            $receiverUid,
+            $receiverPosition,
+            $receiverLocation,
+            $senderSignature
+        );
+        $stmt->execute();
+        $shipmentId = $stmt->insert_id;
+        $stmt->close();
+    }
 
     if (!empty($goods)) {
         $itemsStmt = $connection->prepare("INSERT INTO shipment_items (shipment_id, name, qty, unit, category, category_alt, note) VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -96,11 +122,13 @@ try {
         $itemsStmt->close();
     }
 
+    $connection->commit();
     $connection->close();
-    header('Location: reservation.php?id=' . (int)$shipmentId);
+    header('Location: ' . ($updateId > 0 ? 'material.php' : 'reservation.php?id=' . (int)$shipmentId));
     exit;
 } catch (Throwable $exception) {
     if (isset($connection) && $connection instanceof mysqli && $connection->connect_errno === 0) {
+        $connection->rollback();
         $connection->close();
     }
 

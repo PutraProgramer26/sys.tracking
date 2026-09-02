@@ -2,6 +2,35 @@
 require __DIR__ . '/auth.php';
 requireLogin();
 requireRole('admin');
+require __DIR__ . '/db.php';
+
+$editingId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
+$editingShipment = null;
+$editingItems = [];
+if ($editingId > 0) {
+  $connection = getDbConnection();
+  $shipmentStatement = $connection->prepare('SELECT * FROM shipments WHERE id = ? LIMIT 1');
+  $shipmentStatement->bind_param('i', $editingId);
+  $shipmentStatement->execute();
+  $editingShipment = $shipmentStatement->get_result()->fetch_assoc();
+  $shipmentStatement->close();
+
+  if (!$editingShipment) {
+    $connection->close();
+    header('Location: material.php');
+    exit;
+  }
+
+  $itemsStatement = $connection->prepare('SELECT name, qty, unit, category, category_alt, note FROM shipment_items WHERE shipment_id = ? ORDER BY id ASC');
+  $itemsStatement->bind_param('i', $editingId);
+  $itemsStatement->execute();
+  $editingItems = $itemsStatement->get_result()->fetch_all(MYSQLI_ASSOC);
+  $itemsStatement->close();
+  $connection->close();
+}
+$formShipment = $editingShipment ?: [];
+$formItems = !empty($editingItems) ? $editingItems : [null];
+$pageTitle = $editingShipment ? 'Edit Shipping' : 'Create Shipping';
 
 $senderFields = [
     ['label' => 'Nama', 'name' => 'sender_name', 'placeholder' => 'Masukkan nama pengirim'],
@@ -78,7 +107,7 @@ $receiverFields = [
         <header class="topbar shipping-topbar">
           <div>
             <p class="eyebrow">Shipment</p>
-            <h2>Create Shipping</h2>
+            <h2><?= $pageTitle; ?></h2>
           </div>
           <button class="primary-btn" type="submit" form="shipping-form">Save Shipping</button>
         </header>
@@ -92,6 +121,9 @@ $receiverFields = [
         <?php endif; ?>
 
         <form id="shipping-form" class="shipping-form" method="post" action="save-shipping.php">
+          <?php if ($editingShipment): ?>
+            <input type="hidden" name="update_id" value="<?= $editingId; ?>" />
+          <?php endif; ?>
           <section class="form-panel">
             <div class="section-header">
               <h3>Informasi Pengiriman</h3>
@@ -99,19 +131,19 @@ $receiverFields = [
             <div class="form-grid">
               <div class="field-group">
                 <label for="shipping_date">Tanggal Pengiriman</label>
-                <input id="shipping_date" name="shipping_date" type="date" />
+                <input id="shipping_date" name="shipping_date" type="date" value="<?= htmlspecialchars($formShipment['shipping_date'] ?? ''); ?>" />
               </div>
               <div class="field-group">
                 <label for="reservation_code">Kode Reservasi Pengiriman</label>
-                <input id="reservation_code" name="reservation_code" type="text" placeholder="Contoh: RES-2026-001" />
+                <input id="reservation_code" name="reservation_code" type="text" value="<?= htmlspecialchars($formShipment['reservation_code'] ?? ''); ?>" placeholder="Contoh: RES-2026-001" />
               </div>
               <div class="field-group full-width">
                 <label for="status">Status Pengiriman</label>
                 <select id="status" name="status">
-                  <option value="packing">Packing</option>
-                  <option value="transit">Transit</option>
-                  <option value="out_of_delivery">Out of Delivery</option>
-                  <option value="delivered">Delivered</option>
+                  <option value="packing" <?= (($formShipment['status'] ?? 'packing') === 'packing') ? 'selected' : ''; ?>>Packing</option>
+                  <option value="transit" <?= (($formShipment['status'] ?? '') === 'transit') ? 'selected' : ''; ?>>Transit</option>
+                  <option value="out_of_delivery" <?= (($formShipment['status'] ?? '') === 'out_of_delivery') ? 'selected' : ''; ?>>Out of Delivery</option>
+                  <option value="delivered" <?= (($formShipment['status'] ?? '') === 'delivered') ? 'selected' : ''; ?>>Delivered</option>
                 </select>
               </div>
             </div>
@@ -125,7 +157,7 @@ $receiverFields = [
               <?php foreach ($senderFields as $field): ?>
                 <div class="field-group">
                   <label for="<?= $field['name']; ?>"><?= $field['label']; ?></label>
-                  <input id="<?= $field['name']; ?>" name="<?= $field['name']; ?>" type="text" placeholder="<?= $field['placeholder']; ?>" />
+                  <input id="<?= $field['name']; ?>" name="<?= $field['name']; ?>" type="text" value="<?= htmlspecialchars($formShipment[$field['name']] ?? ''); ?>" placeholder="<?= $field['placeholder']; ?>" />
                 </div>
               <?php endforeach; ?>
             </div>
@@ -139,7 +171,7 @@ $receiverFields = [
               <?php foreach ($receiverFields as $field): ?>
                 <div class="field-group">
                   <label for="<?= $field['name']; ?>"><?= $field['label']; ?></label>
-                  <input id="<?= $field['name']; ?>" name="<?= $field['name']; ?>" type="text" placeholder="<?= $field['placeholder']; ?>" />
+                  <input id="<?= $field['name']; ?>" name="<?= $field['name']; ?>" type="text" value="<?= htmlspecialchars($formShipment[$field['name']] ?? ''); ?>" placeholder="<?= $field['placeholder']; ?>" />
                 </div>
               <?php endforeach; ?>
             </div>
@@ -152,42 +184,44 @@ $receiverFields = [
             </div>
 
             <div id="goods-container" class="goods-container">
+              <?php foreach ($formItems as $formItem): ?>
               <div class="goods-row">
                 <div class="field-group goods-name">
                   <label>Nama Barang</label>
-                  <input type="text" name="goods_name[]" placeholder="Contoh: Kabel UTP" />
+                  <input type="text" name="goods_name[]" value="<?= htmlspecialchars($formItem['name'] ?? ''); ?>" placeholder="Contoh: Kabel UTP" />
                 </div>
                 <div class="field-group goods-qty">
                   <label>Qty Barang</label>
-                  <input type="number" name="goods_qty[]" min="1" placeholder="1" />
+                  <input type="number" name="goods_qty[]" min="1" value="<?= htmlspecialchars((string)($formItem['qty'] ?? '')); ?>" placeholder="1" />
                 </div>
                 <div class="field-group goods-unit">
                   <label>Satuan</label>
-                  <input type="text" name="goods_unit[]" placeholder="pcs, box, meter" />
+                  <input type="text" name="goods_unit[]" value="<?= htmlspecialchars($formItem['unit'] ?? ''); ?>" placeholder="pcs, box, meter" />
                 </div>
                 <div class="field-group goods-category">
                   <label>Item Type</label>
                   <select name="goods_category[]">
-                    <option value="consumables">Consumables</option>
-                    <option value="tools">Tools</option>
+                    <option value="consumables" <?= (($formItem['category'] ?? 'consumables') === 'consumables') ? 'selected' : ''; ?>>Consumables</option>
+                    <option value="tools" <?= (($formItem['category'] ?? '') === 'tools') ? 'selected' : ''; ?>>Tools</option>
                   </select>
                 </div>
                 <div class="field-group goods-category-alt">
                   <label>Kategori</label>
                   <select name="goods_category_alt[]">
                     <option value="">Pilih kategori</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="General">General</option>
-                    <option value="Safety">Safety</option>
-                    <option value="Electrical">Electrical</option>
+                    <option value="Maintenance" <?= (($formItem['category_alt'] ?? '') === 'Maintenance') ? 'selected' : ''; ?>>Maintenance</option>
+                    <option value="General" <?= (($formItem['category_alt'] ?? '') === 'General') ? 'selected' : ''; ?>>General</option>
+                    <option value="Safety" <?= (($formItem['category_alt'] ?? '') === 'Safety') ? 'selected' : ''; ?>>Safety</option>
+                    <option value="Electrical" <?= (($formItem['category_alt'] ?? '') === 'Electrical') ? 'selected' : ''; ?>>Electrical</option>
                   </select>
                 </div>
                 <div class="field-group goods-note">
                   <label>Keterangan</label>
-                  <input type="text" name="goods_note[]" placeholder="Contoh: prioritas tinggi, alat ukuran, dll" />
+                  <input type="text" name="goods_note[]" value="<?= htmlspecialchars($formItem['note'] ?? ''); ?>" placeholder="Contoh: prioritas tinggi, alat ukuran, dll" />
                 </div>
                 <button type="button" class="remove-btn" aria-label="Hapus barang">Hapus</button>
               </div>
+              <?php endforeach; ?>
             </div>
           </section>
 
@@ -201,7 +235,7 @@ $receiverFields = [
               <div class="esign-actions">
                 <button type="button" class="ghost-btn" id="clear-signature">Clear</button>
               </div>
-              <input type="hidden" name="sender_signature" id="sender_signature" />
+              <input type="hidden" name="sender_signature" id="sender_signature" value="<?= htmlspecialchars($formShipment['sender_signature'] ?? ''); ?>" />
             </div>
           </section>
         </form>

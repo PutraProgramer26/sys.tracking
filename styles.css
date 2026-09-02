@@ -1445,6 +1445,44 @@ button {
   white-space: nowrap;
 }
 
+.material-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.material-edit-link,
+.material-delete-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.material-edit-link {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.material-delete-form {
+  margin: 0;
+}
+
+.material-delete-link {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .material-empty {
   padding: 32px 12px;
 }
@@ -1456,6 +1494,10 @@ button {
 
   .material-document-link {
     justify-self: start;
+  }
+
+  .material-actions {
+    justify-content: flex-start;
   }
 }
 

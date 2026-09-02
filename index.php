@@ -132,11 +132,6 @@ $connection->close();
             <p class="eyebrow">Overview</p>
             <h2>Dashboard Material</h2>
           </div>
-          <div class="topbar-actions">
-            <button class="ghost-btn">Filter</button>
-            <button class="primary-btn">Export</button>
-            <a class="ghost-btn" href="logout.php" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Logout</a>
-          </div>
         </header>
 
         <section class="stats-grid">

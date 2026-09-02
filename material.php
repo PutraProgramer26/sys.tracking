@@ -4,8 +4,26 @@ requireLogin();
 requireRole('admin');
 require __DIR__ . '/db.php';
 
-$selectedLocation = trim((string)($_GET['location'] ?? ''));
+$selectedLocation = trim((string)($_GET['location'] ?? $_POST['location'] ?? ''));
 $connection = getDbConnection();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+  $deleteId = (int)($_POST['shipment_id'] ?? 0);
+  if ($deleteId > 0) {
+    $deleteStatement = $connection->prepare('DELETE FROM shipments WHERE id = ?');
+    $deleteStatement->bind_param('i', $deleteId);
+    $deleteStatement->execute();
+    $deleteStatement->close();
+  }
+
+  $redirectUrl = 'material.php';
+  if ($selectedLocation !== '') {
+    $redirectUrl .= '?location=' . rawurlencode($selectedLocation);
+  }
+  $connection->close();
+  header('Location: ' . $redirectUrl);
+  exit;
+}
 
 $locations = [];
 $locationResult = $connection->query("SELECT sender_location AS location FROM shipments WHERE sender_location IS NOT NULL AND sender_location <> '' UNION SELECT receiver_location AS location FROM shipments WHERE receiver_location IS NOT NULL AND receiver_location <> '' ORDER BY location ASC");
@@ -158,7 +176,18 @@ function materialStatusLabel(string $status): string
                       </div>
                     <?php endif; ?>
                   </div>
-                  <a class="inline-link material-document-link" href="reservation.php?id=<?= (int)$shipment['id']; ?>">Lihat dokumen</a>
+                  <div class="material-actions">
+                    <a class="inline-link material-document-link" href="reservation.php?id=<?= (int)$shipment['id']; ?>">Lihat dokumen</a>
+                    <a class="material-edit-link" href="create-shipping.php?edit=<?= (int)$shipment['id']; ?>">Edit</a>
+                    <form method="post" class="material-delete-form" onsubmit="return confirm('Hapus history pengiriman ini?');">
+                      <input type="hidden" name="action" value="delete" />
+                      <input type="hidden" name="shipment_id" value="<?= (int)$shipment['id']; ?>" />
+                      <?php if ($selectedLocation !== ''): ?>
+                        <input type="hidden" name="location" value="<?= htmlspecialchars($selectedLocation); ?>" />
+                      <?php endif; ?>
+                      <button type="submit" class="material-delete-link">Delete</button>
+                    </form>
+                  </div>
                 </article>
               <?php endforeach; ?>
             </div>
