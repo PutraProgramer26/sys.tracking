@@ -51,16 +51,26 @@ function ensureDatabaseSchema(mysqli $connection): void
         username VARCHAR(100) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         full_name VARCHAR(255) NULL,
+        role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB");
+    ensureColumnExists($connection, 'users', 'role', "ENUM('admin', 'user') NOT NULL DEFAULT 'user'");
 
-    $result = $connection->query("SELECT id FROM users WHERE username = 'admin' LIMIT 1");
-    if ($result && $result->num_rows === 0) {
-        $username = 'admin';
-        $hash = password_hash('admin123', PASSWORD_DEFAULT);
-        $fullName = 'Administrator';
-        $stmt = $connection->prepare("INSERT INTO users (username, password, full_name) VALUES (?, ?, ?)");
-        $stmt->bind_param('sss', $username, $hash, $fullName);
+    $seedUsers = [
+        ['admin', 'admin123', 'Administrator', 'admin'],
+        ['user', 'user123', 'Default User', 'user'],
+    ];
+
+    foreach ($seedUsers as [$username, $plainPassword, $fullName, $role]) {
+        $result = $connection->query("SELECT id FROM users WHERE username = '{$username}' LIMIT 1");
+        if ($result && $result->num_rows > 0) {
+            $connection->query("UPDATE users SET role = '{$role}', full_name = '{$fullName}' WHERE username = '{$username}'");
+            continue;
+        }
+
+        $hash = password_hash($plainPassword, PASSWORD_DEFAULT);
+        $stmt = $connection->prepare("INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param('ssss', $username, $hash, $fullName, $role);
         $stmt->execute();
         $stmt->close();
     }

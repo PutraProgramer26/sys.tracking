@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($username !== '' && $password !== '') {
         try {
             $connection = getDbConnection();
-            $stmt = $connection->prepare('SELECT id, username, password FROM users WHERE username = ? LIMIT 1');
+            $stmt = $connection->prepare('SELECT id, username, password, role FROM users WHERE username = ? LIMIT 1');
             $stmt->bind_param('s', $username);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -24,7 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $connection->close();
 
             if ($user && password_verify($password, $user['password'])) {
-                loginUser((int)$user['id'], $user['username']);
+                $role = $user['role'] ?? 'user';
+                loginUser((int)$user['id'], $user['username'], $role);
                 header('Location: index.php');
                 exit;
             }
@@ -165,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit" class="login-btn">Login</button>
       </form>
 
-      <div class="hint">Default login: admin / admin123</div>
+      <div class="hint">Default login: admin / admin123 atau user / user123</div>
     </div>
   </body>
 </html>

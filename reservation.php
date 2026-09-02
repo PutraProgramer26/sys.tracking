@@ -63,7 +63,7 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
           <a class="nav-item" href="tracking.php"><span>📍</span><span class="nav-label">Tracking</span></a>
           <a class="nav-item" href="shipping-monitoring.php"><span>📦</span><span class="nav-label">Shipping Monitoring</span></a>
           <a class="nav-item" href="#"><span>🧾</span><span class="nav-label">Packing</span></a>
-          <a class="nav-item" href="#"><span>⚙️</span><span class="nav-label">Setting</span></a>
+          <a class="nav-item" href="user-management.php"><span>⚙️</span><span class="nav-label">Setting</span></a>
         </nav>
 
         <div class="sidebar-footer">
