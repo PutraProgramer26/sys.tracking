@@ -435,9 +435,9 @@ button {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
   margin-bottom: 24px;
-  padding: 20px 22px;
+  padding: 18px 20px;
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--panel);
@@ -452,7 +452,8 @@ button {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  min-width: min(100%, 440px);
+  width: min(100%, 400px);
+  min-width: 0;
 }
 
 .tracking-search-form label {
@@ -471,7 +472,8 @@ button {
 .tracking-search-controls input {
   min-width: 0;
   flex: 1;
-  padding: 11px 12px;
+  min-height: 44px;
+  padding: 10px 12px;
   border: 1px solid rgba(148, 163, 184, 0.45);
   border-radius: 10px;
   background: #fff;
@@ -483,6 +485,8 @@ button {
 .tracking-search-controls a {
   flex-shrink: 0;
   min-height: 44px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .tracking-search-message {
