@@ -54,26 +54,30 @@ $connection->close();
             <span>📊</span>
             <span class="nav-label">Dashboard</span>
           </a>
-          <a class="nav-item" href="material.php">
-            <span>📦</span>
-            <span class="nav-label">Material</span>
-          </a>
-          <a class="nav-item" href="create-shipping.php">
-            <span>🚚</span>
-            <span class="nav-label">Create Shipping</span>
-          </a>
+          <?php if (isAdmin()): ?>
+            <a class="nav-item" href="material.php">
+              <span>📦</span>
+              <span class="nav-label">Material</span>
+            </a>
+            <a class="nav-item" href="create-shipping.php">
+              <span>🚚</span>
+              <span class="nav-label">Create Shipping</span>
+            </a>
+          <?php endif; ?>
           <a class="nav-item active" href="tracking.php">
             <span>📍</span>
             <span class="nav-label">Tracking</span>
           </a>
-          <a class="nav-item" href="shipping-monitoring.php">
-            <span>📦</span>
-            <span class="nav-label">Shipping Monitoring</span>
-          </a>
-          <a class="nav-item" href="user-management.php">
-            <span>⚙️</span>
-            <span class="nav-label">Setting</span>
-          </a>
+          <?php if (isAdmin()): ?>
+            <a class="nav-item" href="shipping-monitoring.php">
+              <span>📦</span>
+              <span class="nav-label">Shipping Monitoring</span>
+            </a>
+            <a class="nav-item" href="user-management.php">
+              <span>⚙️</span>
+              <span class="nav-label">Setting</span>
+            </a>
+          <?php endif; ?>
         </nav>
 
         <div class="sidebar-footer">
@@ -90,7 +94,9 @@ $connection->close();
             <p class="eyebrow">Shipment</p>
             <h2>Tracking Barang</h2>
           </div>
-          <a class="primary-btn btn-link" href="create-shipping.php">+ Input Pengiriman</a>
+          <?php if (isAdmin()): ?>
+            <a class="primary-btn btn-link" href="create-shipping.php">+ Input Pengiriman</a>
+          <?php endif; ?>
         </header>
 
         <section class="tracking-overview">
@@ -153,7 +159,11 @@ $connection->close();
                       </span>
                     </td>
                     <td>
-                      <a class="inline-link" href="reservation.php?id=<?= (int)($shipment['id'] ?? 0); ?>">Lihat Surat</a>
+                      <?php if (isAdmin()): ?>
+                        <a class="inline-link" href="reservation.php?id=<?= (int)($shipment['id'] ?? 0); ?>">Lihat Surat</a>
+                      <?php else: ?>
+                        <span class="status-pill <?= htmlspecialchars($shipment['status'] ?? 'sent'); ?>">Terpantau</span>
+                      <?php endif; ?>
                     </td>
                   </tr>
                 <?php endforeach; ?>

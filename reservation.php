@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/auth.php';
 requireLogin();
+requireRole('admin');
 require __DIR__ . '/db.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;

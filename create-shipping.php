@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/auth.php';
 requireLogin();
+requireRole('admin');
 
 $senderFields = [
     ['label' => 'Nama', 'name' => 'sender_name', 'placeholder' => 'Masukkan nama pengirim'],
