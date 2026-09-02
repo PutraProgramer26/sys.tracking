@@ -166,7 +166,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit" class="login-btn">Login</button>
       </form>
 
-      <div class="hint">Default login: admin / admin123 atau user / user123</div>
     </div>
   </body>
 </html>
