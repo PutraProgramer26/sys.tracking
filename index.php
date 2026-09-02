@@ -1,53 +1,68 @@
 <?php
 require __DIR__ . '/auth.php';
 requireLogin();
+require __DIR__ . '/db.php';
+
+$connection = getDbConnection();
+$totalsResult = $connection->query("SELECT
+  COALESCE(SUM(CASE WHEN s.status = 'delivered' THEN si.qty ELSE 0 END), 0) AS received_qty,
+  COALESCE(SUM(CASE WHEN s.status IN ('sent', 'transit', 'out_of_delivery') THEN si.qty ELSE 0 END), 0) AS shipping_qty,
+  COALESCE(SUM(CASE WHEN s.status = 'packing' THEN si.qty ELSE 0 END), 0) AS packing_qty
+  FROM shipments s
+  LEFT JOIN shipment_items si ON si.shipment_id = s.id");
+$totals = $totalsResult ? $totalsResult->fetch_assoc() : [];
+$receivedQty = (int)($totals['received_qty'] ?? 0);
+$shippingQty = (int)($totals['shipping_qty'] ?? 0);
+$packingQty = (int)($totals['packing_qty'] ?? 0);
+$totalMaterialQty = $receivedQty + $shippingQty + $packingQty;
+$receivedPercent = $totalMaterialQty > 0 ? round(($receivedQty / $totalMaterialQty) * 100) : 0;
 
 $stats = [
-    [
-        'label' => 'Material Diterima',
-        'value' => 482,
-        'subtitle' => 'Item berhasil masuk gudang',
-        'trend' => '+12.4%',
-        'trendClass' => 'up',
-        'cardClass' => 'success'
-    ],
-    [
-        'label' => 'Dalam Pengiriman',
-        'value' => 168,
-        'subtitle' => 'Material dalam perjalanan',
-        'trend' => '+8.1%',
-        'trendClass' => 'up',
-        'cardClass' => 'warning'
-    ],
-    [
-        'label' => 'Sedang Packing',
-        'value' => 96,
-        'subtitle' => 'Pesanan menunggu pengiriman',
-        'trend' => '-3.2%',
-        'trendClass' => 'down',
-        'cardClass' => 'info'
-    ]
+  ['label' => 'Material Diterima', 'value' => $receivedQty, 'subtitle' => 'Item berstatus Delivered', 'trend' => $receivedPercent . '%', 'trendClass' => 'up', 'cardClass' => 'success'],
+  ['label' => 'Dalam Pengiriman', 'value' => $shippingQty, 'subtitle' => 'Item Transit dan Out of Delivery', 'trend' => $shippingQty . ' item', 'trendClass' => 'up', 'cardClass' => 'warning'],
+  ['label' => 'Sedang Packing', 'value' => $packingQty, 'subtitle' => 'Item menunggu pengiriman', 'trend' => $packingQty . ' item', 'trendClass' => 'down', 'cardClass' => 'info']
 ];
 
 $receivedData = [
-    'labels' => ['Diterima', 'Dalam Gudang', 'Retur'],
-    'values' => [68, 24, 8],
-    'colors' => ['#22c55e', '#60a5fa', '#fbbf24'],
-    'summary' => '68% selesai'
+  'labels' => ['Diterima', 'Dalam Pengiriman', 'Packing'],
+  'values' => [$receivedQty, $shippingQty, $packingQty],
+  'colors' => ['#22c55e', '#60a5fa', '#fbbf24'],
+  'summary' => $receivedPercent . '% selesai'
 ];
 
-$shippingData = [
-    'labels' => ['Jakarta', 'Bandung', 'Surabaya', 'Medan', 'Makassar'],
-    'values' => [42, 35, 27, 18, 14],
-    'colors' => ['#f59e0b', '#fbbf24', '#facc15', '#fcd34d', '#fde68a'],
-    'summary' => '14 kota'
-];
+$shippingData = ['labels' => [], 'values' => [], 'colors' => [], 'summary' => '0 lokasi'];
+$shippingResult = $connection->query("SELECT COALESCE(NULLIF(s.receiver_location, ''), 'Tanpa lokasi') AS location, SUM(si.qty) AS total_qty
+  FROM shipments s
+  INNER JOIN shipment_items si ON si.shipment_id = s.id
+  WHERE s.status IN ('sent', 'transit', 'out_of_delivery')
+  GROUP BY location ORDER BY total_qty DESC LIMIT 5");
+if ($shippingResult) {
+  while ($row = $shippingResult->fetch_assoc()) {
+    $shippingData['labels'][] = $row['location'];
+    $shippingData['values'][] = (int)$row['total_qty'];
+  }
+}
+$shippingData['colors'] = ['#f59e0b', '#fbbf24', '#facc15', '#fcd34d', '#fde68a'];
+$shippingData['summary'] = count($shippingData['labels']) . ' lokasi';
 
-$packingData = [
-    'labels' => ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-    'values' => [40, 58, 52, 73, 66, 84],
-    'summary' => '12 tim'
-];
+$packingData = ['labels' => [], 'values' => [], 'summary' => '0 hari'];
+$packingResult = $connection->query("SELECT s.shipping_date, SUM(si.qty) AS total_qty
+  FROM shipments s
+  INNER JOIN shipment_items si ON si.shipment_id = s.id
+  WHERE s.status = 'packing' AND s.shipping_date IS NOT NULL
+  GROUP BY s.shipping_date ORDER BY s.shipping_date DESC LIMIT 7");
+if ($packingResult) {
+  $packingRows = [];
+  while ($row = $packingResult->fetch_assoc()) {
+    $packingRows[] = $row;
+  }
+  foreach (array_reverse($packingRows) as $row) {
+    $packingData['labels'][] = date('d/m', strtotime($row['shipping_date']));
+    $packingData['values'][] = (int)$row['total_qty'];
+  }
+}
+$packingData['summary'] = count($packingData['labels']) . ' hari';
+$connection->close();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -77,7 +92,7 @@ $packingData = [
             <span>📊</span>
             <span class="nav-label">Dashboard</span>
           </a>
-          <a class="nav-item" href="#">
+          <a class="nav-item" href="material.php">
             <span>📦</span>
             <span class="nav-label">Material</span>
           </a>
@@ -92,10 +107,6 @@ $packingData = [
           <a class="nav-item" href="shipping-monitoring.php">
             <span>📦</span>
             <span class="nav-label">Shipping Monitoring</span>
-          </a>
-          <a class="nav-item" href="user-management.php">
-            <span>🧾</span>
-            <span class="nav-label">Packing</span>
           </a>
           <a class="nav-item" href="user-management.php">
             <span>⚙️</span>
@@ -142,7 +153,7 @@ $packingData = [
             <div class="card-head">
               <div>
                 <p class="card-kicker">Status Material</p>
-                <h3>Material Sudah Diterima</h3>
+                <h3>Distribusi Status Material</h3>
               </div>
               <span class="pill success"><?= $receivedData['summary']; ?></span>
             </div>
@@ -217,7 +228,7 @@ $packingData = [
             },
             tooltip: {
               callbacks: {
-                label: (context) => `${context.label}: ${context.parsed}%`
+                label: (context) => `${context.label}: ${context.raw} item`
               }
             }
           }

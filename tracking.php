@@ -54,7 +54,7 @@ $connection->close();
             <span>📊</span>
             <span class="nav-label">Dashboard</span>
           </a>
-          <a class="nav-item" href="#">
+          <a class="nav-item" href="material.php">
             <span>📦</span>
             <span class="nav-label">Material</span>
           </a>
@@ -69,10 +69,6 @@ $connection->close();
           <a class="nav-item" href="shipping-monitoring.php">
             <span>📦</span>
             <span class="nav-label">Shipping Monitoring</span>
-          </a>
-          <a class="nav-item" href="#">
-            <span>🧾</span>
-            <span class="nav-label">Packing</span>
           </a>
           <a class="nav-item" href="user-management.php">
             <span>⚙️</span>

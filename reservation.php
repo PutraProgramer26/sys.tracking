@@ -31,7 +31,7 @@ $connection->close();
 
 $baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
 $onlineUrl = rtrim($baseUrl, '/') . '/reservation.php?id=' . (int)$shipment['id'];
-$qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' . rawurlencode($onlineUrl);
+$documentUrl = rtrim($baseUrl, '/') . '/shipping-document.php?id=' . (int)$shipment['id'];
 $signatureImage = $shipment['sender_signature'] ?? '';
 $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
 ?>
@@ -59,10 +59,10 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
 
         <nav class="nav-menu">
           <a class="nav-item" href="index.php"><span>📊</span><span class="nav-label">Dashboard</span></a>
+          <a class="nav-item" href="material.php"><span>📦</span><span class="nav-label">Material</span></a>
           <a class="nav-item" href="create-shipping.php"><span>🚚</span><span class="nav-label">Create Shipping</span></a>
           <a class="nav-item" href="tracking.php"><span>📍</span><span class="nav-label">Tracking</span></a>
           <a class="nav-item" href="shipping-monitoring.php"><span>📦</span><span class="nav-label">Shipping Monitoring</span></a>
-          <a class="nav-item" href="#"><span>🧾</span><span class="nav-label">Packing</span></a>
           <a class="nav-item" href="user-management.php"><span>⚙️</span><span class="nav-label">Setting</span></a>
         </nav>
 
@@ -74,18 +74,31 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
       <main class="main-panel reservation-page">
         <div class="reservation-document">
           <header class="reservation-header">
-            <h1>Surat Reservasi / Pengiriman Barang</h1>
-            <div class="reservation-meta">
-              <span>Kode Reservasi: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
-              <span>Tanggal: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
-              <span>Status: <?= htmlspecialchars(ucfirst($shipment['status'] ?? 'packing')); ?></span>
+            <div class="official-letterhead">
+              <div class="letter-contact">
+                <strong>DOKUMEN INTERNAL</strong>
+                <span>Surat Reservasi dan Pengiriman Barang</span>
+              </div>
+            </div>
+            <div class="letter-rule"></div>
+            <div class="letter-heading">
+              <h1>SURAT RESERVASI / PENGIRIMAN BARANG</h1>
+              <div class="reservation-meta">
+                <span>Nomor: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
+                <span>Tanggal: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
+                <span>Status: <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'))); ?></span>
+              </div>
             </div>
           </header>
 
-          <div class="reservation-body">
+          <div class="letter-intro">
+            <p>Dengan hormat, berikut kami sampaikan data reservasi dan pengiriman barang untuk dapat digunakan sebagaimana mestinya.</p>
+          </div>
+
+          <div class="reservation-body parties-body">
             <section class="reservation-panel two-column-panel">
               <div class="partner-column">
-                <h3>Data Pengirim</h3>
+                <h3>I. Data Pengirim</h3>
                 <div class="info-grid">
                   <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span></div>
                   <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span></div>
@@ -95,7 +108,7 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
               </div>
 
               <div class="partner-column">
-                <h3>Data Penerima</h3>
+                <h3>II. Data Penerima</h3>
                 <div class="info-grid">
                   <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span></div>
                   <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span></div>
@@ -105,18 +118,19 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
               </div>
             </section>
 
-            <aside class="reservation-panel qr-panel">
-              <h3>Barcode / QR Online</h3>
-              <div class="qr-box">
-                <img src="<?= htmlspecialchars($qrUrl); ?>" alt="QR barcode reservation" />
+            <aside class="reservation-panel barcode-panel">
+              <h3>Identifikasi Dokumen</h3>
+              <div class="barcode-box">
+                <svg class="reservation-barcode" data-barcode-value="<?= htmlspecialchars($documentUrl); ?>" role="img" aria-label="Barcode reservasi"></svg>
+                <span class="barcode-value"><?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
               </div>
-              <a class="qr-link" href="<?= htmlspecialchars($onlineUrl); ?>" target="_blank" rel="noopener noreferrer">Lihat Online</a>
+              <a class="barcode-link" href="<?= htmlspecialchars($onlineUrl); ?>" target="_blank" rel="noopener noreferrer">Lihat Online</a>
             </aside>
           </div>
 
-          <div class="reservation-body" style="padding-top: 0;">
+          <div class="reservation-body document-items" style="padding-top: 0;">
             <section class="reservation-panel">
-              <h3>Detail Barang</h3>
+              <h3>III. Rincian Barang</h3>
               <table class="items-table">
                 <thead>
                   <tr>
@@ -150,9 +164,13 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
             </section>
           </div>
 
+          <div class="letter-closing">
+            <p>Demikian surat reservasi dan pengiriman barang ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
+          </div>
+
           <div class="reservation-signature-row">
             <div class="reservation-panel signature-panel">
-              <h3>E-Sign Pengirim</h3>
+              <h3>Pengirim</h3>
               <?php if (!empty($signatureImage)): ?>
                 <div class="sign-box large-sign-box">
                   <img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" />
@@ -163,12 +181,12 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
               <div class="signature-meta">
                 <span>Nama: <?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span>
                 <span>UID: <?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span>
-                <span>Position: <?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span>
+                <span>Posisi: <?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span>
               </div>
             </div>
 
             <div class="reservation-panel signature-panel">
-              <h3>E-Sign Penerima</h3>
+              <h3>Penerima</h3>
               <?php if (!empty($receiverSignatureImage)): ?>
                 <div class="sign-box large-sign-box">
                   <img src="<?= htmlspecialchars($receiverSignatureImage); ?>" alt="Signature penerima" />
@@ -179,7 +197,7 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
               <div class="signature-meta">
                 <span>Nama: <?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span>
                 <span>UID: <?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span>
-                <span>Position: <?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span>
+                <span>Posisi: <?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span>
               </div>
             </div>
           </div>
@@ -191,6 +209,20 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
         </div>
       </main>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script>
+      document.querySelectorAll('.reservation-barcode').forEach((barcode) => {
+        JsBarcode(barcode, barcode.dataset.barcodeValue, {
+          format: 'CODE128',
+          displayValue: false,
+          height: 44,
+          width: 1.2,
+          margin: 0,
+          lineColor: '#0f172a',
+          background: '#ffffff'
+        });
+      });
+    </script>
     <script src="sidebar.js"></script>
   </body>
 </html>

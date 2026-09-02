@@ -195,6 +195,7 @@ try {
 
         <nav class="nav-menu">
           <a class="nav-item" href="index.php"><span>📊</span><span class="nav-label">Dashboard</span></a>
+          <a class="nav-item" href="material.php"><span>📦</span><span class="nav-label">Material</span></a>
           <a class="nav-item" href="create-shipping.php"><span>🚚</span><span class="nav-label">Create Shipping</span></a>
           <a class="nav-item" href="tracking.php"><span>📍</span><span class="nav-label">Tracking</span></a>
           <a class="nav-item" href="shipping-monitoring.php"><span>📦</span><span class="nav-label">Shipping Monitoring</span></a>

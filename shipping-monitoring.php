@@ -98,7 +98,7 @@ $connection->close();
             <span>📊</span>
             <span class="nav-label">Dashboard</span>
           </a>
-          <a class="nav-item" href="#">
+          <a class="nav-item" href="material.php">
             <span>📦</span>
             <span class="nav-label">Material</span>
           </a>
@@ -113,10 +113,6 @@ $connection->close();
           <a class="nav-item active" href="shipping-monitoring.php">
             <span>📦</span>
             <span class="nav-label">Shipping Monitoring</span>
-          </a>
-          <a class="nav-item" href="#">
-            <span>🧾</span>
-            <span class="nav-label">Packing</span>
           </a>
           <a class="nav-item" href="user-management.php">
             <span>⚙️</span>
@@ -225,18 +221,30 @@ $connection->close();
       document.querySelectorAll('.delivery-form').forEach((form) => {
         const canvas = form.querySelector('.delivery-signature');
         const hiddenInput = form.querySelector('.receiver-signature-input');
+        const deliveryFields = form.querySelector('.delivery-fields');
         const signatureWrap = form.querySelector('.delivery-signature-wrap');
         const statusSelect = form.querySelector('select[name="status"]');
+        const receiverInputs = form.querySelectorAll('.delivery-fields input:not([type="hidden"])');
+        const savedStatus = statusSelect.value;
         const ctx = canvas.getContext('2d');
         let drawing = false;
+        let statusChanged = false;
 
         function updateSignatureVisibility() {
-          const isRequired = statusSelect.value === 'delivered';
+          const isRequired = statusSelect.value === 'delivered'
+            && (savedStatus !== 'delivered' || statusChanged);
+          deliveryFields.style.display = isRequired ? 'grid' : 'none';
           signatureWrap.style.display = isRequired ? 'block' : 'none';
+          receiverInputs.forEach((input) => {
+            input.required = isRequired;
+          });
           canvas.setAttribute('aria-hidden', isRequired ? 'false' : 'true');
         }
 
-        statusSelect.addEventListener('change', updateSignatureVisibility);
+        statusSelect.addEventListener('change', () => {
+          statusChanged = true;
+          updateSignatureVisibility();
+        });
         updateSignatureVisibility();
 
         const initialSignature = hiddenInput.value || '';
