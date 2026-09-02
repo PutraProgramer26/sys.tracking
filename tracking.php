@@ -4,9 +4,17 @@ requireLogin();
 require __DIR__ . '/db.php';
 
 $connection = getDbConnection();
+$searchCode = trim((string)($_GET['reservation_code'] ?? ''));
 $shipments = [];
 
-$result = $connection->query("SELECT * FROM shipments ORDER BY id DESC");
+$result = null;
+if ($searchCode !== '') {
+  $searchStatement = $connection->prepare('SELECT * FROM shipments WHERE reservation_code = ? LIMIT 1');
+  $searchStatement->bind_param('s', $searchCode);
+  $searchStatement->execute();
+  $result = $searchStatement->get_result();
+  $searchStatement->close();
+}
 if ($result) {
     while ($shipment = $result->fetch_assoc()) {
         $shipmentId = (int)$shipment['id'];
@@ -99,6 +107,28 @@ $connection->close();
           <?php endif; ?>
         </header>
 
+        <section class="tracking-search-panel">
+          <div>
+            <p class="card-kicker">Cari pengiriman</p>
+            <h3>Masukkan kode reservasi untuk melihat detail</h3>
+          </div>
+          <form method="get" class="tracking-search-form">
+            <label for="reservation_code">Kode Reservasi</label>
+            <div class="tracking-search-controls">
+              <input id="reservation_code" name="reservation_code" type="search" value="<?= htmlspecialchars($searchCode); ?>" placeholder="Contoh: RES-2026-001" required />
+              <button type="submit" class="primary-btn">Cari</button>
+              <?php if ($searchCode !== ''): ?>
+                <a class="ghost-btn btn-link" href="tracking.php">Reset</a>
+              <?php endif; ?>
+            </div>
+          </form>
+        </section>
+
+        <?php if ($searchCode === ''): ?>
+          <div class="tracking-search-message">Detail pengiriman belum ditampilkan. Silakan masukkan kode reservasi terlebih dahulu.</div>
+        <?php elseif (empty($shipments)): ?>
+          <div class="tracking-search-message error">Kode reservasi tidak ditemukan. Periksa kembali kode yang dimasukkan.</div>
+        <?php else: ?>
         <section class="tracking-overview">
           <div class="tracking-stat">
             <span>Total Pengiriman</span>
@@ -171,6 +201,7 @@ $connection->close();
             </tbody>
           </table>
         </section>
+        <?php endif; ?>
       </main>
     </div>
     <script src="sidebar.js"></script>

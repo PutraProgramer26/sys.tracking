@@ -431,6 +431,75 @@ button {
   margin-bottom: 24px;
 }
 
+.tracking-search-panel {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.025);
+}
+
+.tracking-search-panel h3 {
+  margin: 0;
+}
+
+.tracking-search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: min(100%, 440px);
+}
+
+.tracking-search-form label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tracking-search-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.tracking-search-controls input {
+  min-width: 0;
+  flex: 1;
+  padding: 11px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+}
+
+.tracking-search-controls button,
+.tracking-search-controls a {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+
+.tracking-search-message {
+  padding: 18px 20px;
+  border: 1px dashed rgba(148, 163, 184, 0.55);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
+  text-align: center;
+}
+
+.tracking-search-message.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 .tracking-stat {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -940,6 +1009,16 @@ button {
 
   .tracking-overview {
     grid-template-columns: 1fr;
+  }
+
+  .tracking-search-panel {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .tracking-search-form {
+    min-width: 0;
   }
 
   .reservation-body {
