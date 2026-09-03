@@ -30,6 +30,14 @@ $connection->close();
 $signatureImage = $shipment['sender_signature'] ?? '';
 $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
 $status = ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'));
+$isPdf = isset($_GET['format']) && $_GET['format'] === 'pdf';
+$documentStyles = $isPdf && file_exists(__DIR__ . '/styles.css')
+  ? '<style>' . file_get_contents(__DIR__ . '/styles.css') . '</style>'
+  : '<link rel="stylesheet" href="styles.css" />';
+if ($isPdf) {
+  require_once __DIR__ . '/vendor/autoload.php';
+  ob_start();
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -40,7 +48,7 @@ $status = ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'));
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
+    <?= $documentStyles; ?>
   </head>
   <body>
     <main class="main-panel reservation-page document-only-page">
@@ -160,3 +168,17 @@ $status = ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'));
     </main>
   </body>
 </html>
+<?php if ($isPdf): ?>
+<?php
+$html = ob_get_clean();
+$options = new \Dompdf\Options();
+$options->set('isRemoteEnabled', true);
+$options->set('chroot', __DIR__);
+$dompdf = new \Dompdf\Dompdf($options);
+$dompdf->loadHtml($html, 'UTF-8');
+$dompdf->setPaper('A4', 'portrait');
+$dompdf->render();
+$dompdf->stream('goods-handover-' . ($shipment['reservation_code'] ?? 'document') . '.pdf', ['Attachment' => false]);
+exit;
+?>
+<?php endif; ?>
