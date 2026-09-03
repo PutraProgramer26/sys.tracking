@@ -693,6 +693,15 @@ button {
   line-height: 1.45;
 }
 
+.reservation-page:has(.handover-header) {
+  padding-top: 24px;
+}
+
+.reservation-document:has(.handover-header) {
+  max-width: 900px;
+  border-color: #d9e0e8;
+}
+
 .reservation-header {
   background: #fff;
   color: #0f172a;
@@ -1330,7 +1339,7 @@ button {
 
 /* Goods handover certificate */
 .handover-header {
-  padding: 16px 28px 10px;
+  padding: 18px 36px 10px;
   text-align: center;
 }
 
@@ -1359,16 +1368,16 @@ button {
 
 .handover-summary {
   display: grid;
-  grid-template-columns: 1fr 92px;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 28px;
   align-items: center;
-  padding: 22px 28px 14px;
+  padding: 24px 36px 16px;
 }
 
 .handover-meta-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px 24px;
+  gap: 16px 28px;
 }
 
 .handover-meta-grid div {
@@ -1396,8 +1405,8 @@ button {
 
 .handover-qr {
   display: flex;
-  width: 92px;
-  height: 92px;
+  width: 104px;
+  height: 104px;
   align-items: center;
   justify-content: center;
   margin: 0 auto 4px;
@@ -1405,8 +1414,8 @@ button {
 
 .handover-qr img {
   display: block;
-  width: 92px;
-  height: 92px;
+  width: 104px;
+  height: 104px;
 }
 
 .handover-qr-wrap span {
@@ -1416,11 +1425,11 @@ button {
 }
 
 .handover-content {
-  padding: 0 28px 18px;
+  padding: 0 36px 22px;
   color: #172033;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 0.76rem;
-  line-height: 1.45;
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .handover-content > p {
@@ -1430,8 +1439,8 @@ button {
 .handover-parties {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 30px;
-  margin-bottom: 12px;
+  gap: 42px;
+  margin-bottom: 16px;
 }
 
 .handover-parties h2 {
@@ -1477,7 +1486,7 @@ button {
 
 .handover-items-table th,
 .handover-items-table td {
-  padding: 5px 4px;
+  padding: 7px 6px;
   border-bottom: 1px solid #e2e8f0;
   text-align: left;
 }
@@ -1500,15 +1509,15 @@ button {
 }
 
 .handover-signature {
-  min-height: 142px;
-  padding: 10px 14px 8px;
+  min-height: 166px;
+  padding: 12px 16px 10px;
   border-color: #dbe2ea;
   border-radius: 8px;
 }
 
 .handover-header + .handover-summary + .handover-content + .reservation-signature-row {
   gap: 18px;
-  padding: 0 28px 18px;
+  padding: 0 36px 22px;
 }
 
 .handover-signature h3 {
@@ -1594,7 +1603,7 @@ button {
   }
 
   .handover-summary {
-    grid-template-columns: 1fr 72px;
+    grid-template-columns: 1fr 78px;
     gap: 12px;
     padding: 14px 18px 8px;
   }
@@ -1609,8 +1618,8 @@ button {
 
   .handover-qr,
   .handover-qr img {
-    width: 72px;
-    height: 72px;
+    width: 78px;
+    height: 78px;
   }
 
   .handover-qr-wrap span {
