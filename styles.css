@@ -1328,6 +1328,342 @@ button {
   color: var(--muted);
 }
 
+/* Goods handover certificate */
+.handover-header {
+  padding: 16px 28px 10px;
+  text-align: center;
+}
+
+.handover-header h1 {
+  margin: 0;
+  color: #172033;
+  font-size: 1.18rem;
+  letter-spacing: 0.08em;
+}
+
+.handover-header p {
+  margin: 5px 0 2px;
+  color: #64748b;
+  font-size: 0.68rem;
+}
+
+.handover-header strong,
+.handover-meta-grid label,
+.items-caption,
+.signatures-caption {
+  color: #15803d;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.handover-summary {
+  display: grid;
+  grid-template-columns: 1fr 92px;
+  gap: 20px;
+  align-items: center;
+  padding: 22px 28px 14px;
+}
+
+.handover-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+
+.handover-meta-grid div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.handover-meta-grid label {
+  color: #94a3b8;
+  font-size: 0.54rem;
+}
+
+.handover-meta-grid strong {
+  overflow-wrap: anywhere;
+  color: #172033;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.handover-qr-wrap {
+  text-align: center;
+}
+
+.handover-qr {
+  display: flex;
+  width: 92px;
+  height: 92px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 4px;
+}
+
+.handover-qr img {
+  display: block;
+  width: 92px;
+  height: 92px;
+}
+
+.handover-qr-wrap span {
+  color: #94a3b8;
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+}
+
+.handover-content {
+  padding: 0 28px 18px;
+  color: #172033;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.handover-content > p {
+  margin: 8px 0 12px;
+}
+
+.handover-parties {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
+  margin-bottom: 12px;
+}
+
+.handover-parties h2 {
+  margin: 0 0 5px;
+  font-family: Inter, sans-serif;
+  font-size: 0.68rem;
+}
+
+.handover-details {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 2px 8px;
+  font-size: 0.68rem;
+}
+
+.handover-details span {
+  color: #64748b;
+}
+
+.handover-details strong {
+  font-weight: 500;
+}
+
+.handover-parties em {
+  color: #94a3b8;
+  font-size: 0.6rem;
+}
+
+.items-caption,
+.signatures-caption {
+  margin: 13px 0 3px;
+  color: #94a3b8;
+  font-family: Inter, sans-serif;
+  font-size: 0.52rem;
+}
+
+.handover-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Inter, sans-serif;
+  font-size: 0.68rem;
+}
+
+.handover-items-table th,
+.handover-items-table td {
+  padding: 5px 4px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.handover-items-table th {
+  color: #94a3b8;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+}
+
+.handover-items-table th:first-child,
+.handover-items-table td:first-child,
+.handover-items-table th:nth-child(4),
+.handover-items-table td:nth-child(4) {
+  text-align: center;
+}
+
+.handover-terms {
+  margin-top: 14px !important;
+}
+
+.handover-signature {
+  min-height: 142px;
+  padding: 10px 14px 8px;
+  border-color: #dbe2ea;
+  border-radius: 8px;
+}
+
+.handover-header + .handover-summary + .handover-content + .reservation-signature-row {
+  gap: 18px;
+  padding: 0 28px 18px;
+}
+
+.handover-signature h3 {
+  margin-bottom: 1px;
+  padding: 0;
+  border: 0;
+  color: #172033;
+  font-family: Inter, sans-serif;
+  font-size: 0.62rem;
+}
+
+.signature-label {
+  color: #64748b;
+  font-family: Inter, sans-serif;
+  font-size: 0.58rem;
+}
+
+.handover-signature .sign-box {
+  min-height: 62px;
+  margin: 2px 0 3px;
+  padding: 0;
+  border: 0;
+}
+
+.handover-signature .sign-box img {
+  max-height: 62px;
+}
+
+.handover-signature .signature-meta {
+  align-items: center;
+  gap: 1px;
+  margin-top: 0;
+  padding-top: 3px;
+  border-top: 1px solid #e2e8f0;
+  font-family: Inter, sans-serif;
+  font-size: 0.58rem;
+  text-align: center;
+}
+
+.handover-signature .signature-meta strong {
+  color: #172033;
+}
+
+.handover-signature .signature-meta small {
+  color: #15803d;
+  font-size: 0.5rem;
+}
+
+@media (max-width: 700px) {
+  .handover-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .handover-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .handover-parties {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@media print {
+  .handover-header {
+    padding: 8px 18px 5px;
+  }
+
+  .handover-header h1 {
+    font-size: 15px;
+  }
+
+  .handover-header p {
+    margin: 3px 0 1px;
+    font-size: 7px;
+  }
+
+  .handover-header strong,
+  .handover-meta-grid label,
+  .items-caption,
+  .signatures-caption {
+    font-size: 6px;
+  }
+
+  .handover-summary {
+    grid-template-columns: 1fr 72px;
+    gap: 12px;
+    padding: 14px 18px 8px;
+  }
+
+  .handover-meta-grid {
+    gap: 7px 14px;
+  }
+
+  .handover-meta-grid strong {
+    font-size: 7px;
+  }
+
+  .handover-qr,
+  .handover-qr img {
+    width: 72px;
+    height: 72px;
+  }
+
+  .handover-qr-wrap span {
+    font-size: 4px;
+  }
+
+  .handover-content {
+    padding: 0 18px 10px;
+    font-size: 8px;
+  }
+
+  .handover-content > p {
+    margin: 5px 0 8px;
+  }
+
+  .handover-parties {
+    gap: 20px;
+    margin-bottom: 8px;
+  }
+
+  .handover-parties h2,
+  .handover-details {
+    font-size: 7px;
+  }
+
+  .handover-parties em {
+    font-size: 6px;
+  }
+
+  .handover-items-table {
+    font-size: 7px;
+  }
+
+  .handover-items-table th {
+    font-size: 5px;
+  }
+
+  .handover-signature {
+    min-height: 100px;
+    padding: 7px 10px 5px;
+  }
+
+  .handover-header + .handover-summary + .handover-content + .reservation-signature-row {
+    gap: 12px !important;
+    padding: 0 18px 10px !important;
+  }
+
+  .signature-label,
+  .handover-signature .signature-meta {
+    font-size: 6px;
+  }
+}
+
 .material-toolbar {
   display: flex;
   align-items: flex-end;
