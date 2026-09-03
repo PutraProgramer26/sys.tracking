@@ -32,10 +32,9 @@ $connection->close();
 
 $baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
 $onlineUrl = rtrim($baseUrl, '/') . '/reservation.php?id=' . (int)$shipment['id'];
-$documentUrl = rtrim($baseUrl, '/') . '/shipping-document.php?id=' . (int)$shipment['id'] . '&format=pdf';
+$documentUrl = rtrim($baseUrl, '/') . '/shipping-document.php?id=' . (int)$shipment['id'];
 $signatureImage = $shipment['sender_signature'] ?? '';
 $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
-$formattedDate = !empty($shipment['shipping_date']) ? date('d F Y', strtotime($shipment['shipping_date'])) : '-';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -75,82 +74,92 @@ $formattedDate = !empty($shipment['shipping_date']) ? date('d F Y', strtotime($s
 
       <main class="main-panel reservation-page">
         <div class="reservation-document">
-          <header class="handover-header">
-            <h1>GOODS HANDOVER CERTIFICATE</h1>
-            <p>Document No: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></p>
-            <strong>FULLY SIGNED</strong>
+          <header class="reservation-header">
+            <div class="official-letterhead">
+              <div class="letter-contact">
+                <strong>DOKUMEN INTERNAL</strong>
+                <span>Surat Reservasi dan Pengiriman Barang</span>
+              </div>
+            </div>
+            <div class="letter-rule"></div>
+            <div class="letter-heading">
+              <h1>SURAT RESERVASI / PENGIRIMAN BARANG</h1>
+              <div class="reservation-meta">
+                <span>Nomor: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
+                <span>Tanggal: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
+                <span>Status: <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'))); ?></span>
+              </div>
+            </div>
           </header>
 
-          <div class="handover-summary">
-            <div class="handover-meta-grid">
-              <div><label>DATE</label><strong><?= htmlspecialchars($formattedDate); ?></strong></div>
-              <div><label>TRIP ID</label><strong><?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></strong></div>
-              <div><label>SUPPLIER</label><strong><?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></strong></div>
-              <div><label>VEHICLE / DRIVER</label><strong><?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></strong></div>
-              <div><label>FROM</label><strong><?= htmlspecialchars($shipment['sender_location'] ?? '-'); ?></strong></div>
-              <div><label>TO</label><strong><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></strong></div>
-            </div>
-            <div class="handover-qr-wrap">
-              <div class="handover-qr" data-qr-value="<?= htmlspecialchars($documentUrl); ?>" role="img" aria-label="QR code dokumen"></div>
-              <span>SCAN TO VIEW ONLINE</span>
-            </div>
+          <div class="letter-intro">
+            <p>Dengan hormat, berikut kami sampaikan data reservasi dan pengiriman barang untuk dapat digunakan sebagaimana mestinya.</p>
           </div>
 
-          <div class="handover-content">
-            <p>On this day, <?= htmlspecialchars($formattedDate); ?>, we, the undersigned:</p>
-
-            <div class="handover-parties">
-              <section>
-                <h2>1. FIRST PARTY</h2>
-                <div class="handover-details">
-                  <span>Name</span><strong><?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></strong>
-                  <span>Position</span><strong><?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></strong>
-                  <span>ID No</span><strong><?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></strong>
-                  <span>Project</span><strong><?= htmlspecialchars($shipment['sender_location'] ?? '-'); ?></strong>
+          <div class="reservation-body parties-body">
+            <section class="reservation-panel two-column-panel">
+              <div class="partner-column">
+                <h3>I. Data Pengirim</h3>
+                <div class="info-grid">
+                  <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['sender_location'] ?? '-'); ?></span></div>
                 </div>
-                <em>hereinafter referred to as the FIRST PARTY</em>
-              </section>
-              <section>
-                <h2>2. SECOND PARTY</h2>
-                <div class="handover-details">
-                  <span>Name</span><strong><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></strong>
-                  <span>Position</span><strong><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></strong>
-                  <span>ID No</span><strong><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></strong>
-                  <span>Project</span><strong><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></strong>
+              </div>
+              <div class="partner-column">
+                <h3>II. Data Penerima</h3>
+                <div class="info-grid">
+                  <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span></div>
                 </div>
-                <em>hereinafter referred to as the SECOND PARTY</em>
-              </section>
-            </div>
+              </div>
+            </section>
 
-            <p>The FIRST PARTY hereby hands over to the SECOND PARTY, and the SECOND PARTY acknowledges receipt of, the following goods/equipment:</p>
-            <div class="items-caption">ITEMS - <?= count($items); ?></div>
-            <table class="handover-items-table">
-              <thead><tr><th>NO</th><th>CODE</th><th>DESCRIPTION</th><th>QTY</th><th>UNIT</th></tr></thead>
-              <tbody>
-                <?php if (empty($items)): ?>
-                  <tr><td colspan="5">No items recorded.</td></tr>
-                <?php else: ?>
-                  <?php foreach ($items as $itemIndex => $item): ?>
-                    <tr>
-                      <td><?= $itemIndex + 1; ?></td>
-                      <td><?= htmlspecialchars($item['category_alt'] ?? '-'); ?></td>
-                      <td><?= htmlspecialchars($item['name'] ?? '-'); ?><?= !empty($item['note']) ? ', ' . htmlspecialchars($item['note']) : ''; ?></td>
-                      <td><?= htmlspecialchars((string)($item['qty'] ?? 0)); ?></td>
-                      <td><?= htmlspecialchars($item['unit'] ?? '-'); ?></td>
-                    </tr>
-                  <?php endforeach; ?>
-                <?php endif; ?>
-              </tbody>
-            </table>
+            <aside class="reservation-panel barcode-panel">
+              <h3>Identifikasi Dokumen</h3>
+              <div class="barcode-box">
+                <svg class="reservation-barcode" data-barcode-value="<?= htmlspecialchars($documentUrl); ?>" role="img" aria-label="Barcode reservasi"></svg>
+                <span class="barcode-value"><?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
+              </div>
+              <a class="barcode-link" href="<?= htmlspecialchars($onlineUrl); ?>" target="_blank" rel="noopener noreferrer">Lihat Online</a>
+            </aside>
+          </div>
 
-            <p class="handover-terms">The above goods/equipment were handed over in good and complete condition; upon signing of this certificate, full responsibility transfers to the SECOND PARTY.</p>
-            <div class="signatures-caption">SIGNATURES</div>
+          <div class="reservation-body document-items" style="padding-top: 0;">
+            <section class="reservation-panel">
+              <h3>III. Rincian Barang</h3>
+              <table class="items-table">
+                <thead><tr><th>Nama Barang</th><th>Qty</th><th>Satuan</th><th>Item Type</th><th>Kategori</th><th>Keterangan</th></tr></thead>
+                <tbody>
+                  <?php if (empty($items)): ?>
+                    <tr><td colspan="6">Tidak ada data barang.</td></tr>
+                  <?php else: ?>
+                    <?php foreach ($items as $item): ?>
+                      <tr>
+                        <td><?= htmlspecialchars($item['name'] ?? '-'); ?></td>
+                        <td><?= htmlspecialchars((string)($item['qty'] ?? 0)); ?></td>
+                        <td><?= htmlspecialchars($item['unit'] ?? '-'); ?></td>
+                        <td><?= htmlspecialchars($item['category'] ?? '-'); ?></td>
+                        <td><?= htmlspecialchars($item['category_alt'] ?? '-'); ?></td>
+                        <td><?= htmlspecialchars($item['note'] ?? '-'); ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </section>
+          </div>
+
+          <div class="letter-closing">
+            <p>Demikian surat reservasi dan pengiriman barang ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
           </div>
 
           <div class="reservation-signature-row">
-            <div class="reservation-panel signature-panel handover-signature">
-              <h3>FIRST PARTY</h3>
-              <span class="signature-label">Released by</span>
+            <div class="reservation-panel signature-panel">
+              <h3>Pengirim</h3>
               <?php if (!empty($signatureImage)): ?>
                 <div class="sign-box large-sign-box">
                   <img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" />
@@ -159,16 +168,14 @@ $formattedDate = !empty($shipment['shipping_date']) ? date('d F Y', strtotime($s
                 <p class="esign-note">Tidak ada tanda tangan.</p>
               <?php endif; ?>
               <div class="signature-meta">
-                <strong><?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></strong>
-                <span><?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span>
-                <span><?= htmlspecialchars($shipment['sender_location'] ?? '-'); ?></span>
-                <small>Signed - <?= htmlspecialchars($formattedDate); ?></small>
+                <span>Nama: <?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span>
+                <span>UID: <?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span>
+                <span>Posisi: <?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span>
               </div>
             </div>
 
-            <div class="reservation-panel signature-panel handover-signature">
-              <h3>SECOND PARTY</h3>
-              <span class="signature-label">Received by</span>
+            <div class="reservation-panel signature-panel">
+              <h3>Penerima</h3>
               <?php if (!empty($receiverSignatureImage)): ?>
                 <div class="sign-box large-sign-box">
                   <img src="<?= htmlspecialchars($receiverSignatureImage); ?>" alt="Signature penerima" />
@@ -177,10 +184,9 @@ $formattedDate = !empty($shipment['shipping_date']) ? date('d F Y', strtotime($s
                 <p class="esign-note">Belum ada tanda tangan penerima.</p>
               <?php endif; ?>
               <div class="signature-meta">
-                <strong><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></strong>
-                <span><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span>
-                <span><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span>
-                <small><?= !empty($receiverSignatureImage) ? 'Signed' : 'Pending signature'; ?> - <?= htmlspecialchars($formattedDate); ?></small>
+                <span>Nama: <?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span>
+                <span>UID: <?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span>
+                <span>Posisi: <?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span>
               </div>
             </div>
           </div>
@@ -192,16 +198,17 @@ $formattedDate = !empty($shipment['shipping_date']) ? date('d F Y', strtotime($s
         </div>
       </main>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script>
-      document.querySelectorAll('.handover-qr').forEach((qr) => {
-        new QRCode(qr, {
-          text: qr.dataset.qrValue,
-          width: 104,
-          height: 104,
-          colorDark: '#111827',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.M
+      document.querySelectorAll('.reservation-barcode').forEach((barcode) => {
+        JsBarcode(barcode, barcode.dataset.barcodeValue, {
+          format: 'CODE128',
+          displayValue: false,
+          height: 44,
+          width: 1.2,
+          margin: 0,
+          lineColor: '#0f172a',
+          background: '#ffffff'
         });
       });
     </script>

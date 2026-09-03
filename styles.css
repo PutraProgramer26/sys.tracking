@@ -693,15 +693,6 @@ button {
   line-height: 1.45;
 }
 
-.reservation-page:has(.handover-header) {
-  padding-top: 24px;
-}
-
-.reservation-document:has(.handover-header) {
-  max-width: 900px;
-  border-color: #d9e0e8;
-}
-
 .reservation-header {
   background: #fff;
   color: #0f172a;
