@@ -27,8 +27,11 @@ $items = $itemsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $itemsStmt->close();
 $connection->close();
 
+$baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
+$documentUrl = rtrim($baseUrl, '/') . '/shipping-document.php?id=' . (int)$shipment['id'];
 $signatureImage = $shipment['sender_signature'] ?? '';
 $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
+$isDelivered = ($shipment['status'] ?? '') === 'delivered';
 $isDelivered = ($shipment['status'] ?? '') === 'delivered';
 $status = ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'));
 $isPdf = isset($_GET['format']) && $_GET['format'] === 'pdf';
@@ -45,7 +48,7 @@ if ($isPdf) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Surat Pengiriman - <?= htmlspecialchars($shipment['reservation_code'] ?? ''); ?></title>
+    <title>Goods Handover Certificate - <?= htmlspecialchars($shipment['reservation_code'] ?? ''); ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -57,13 +60,13 @@ if ($isPdf) {
         <header class="reservation-header">
           <div class="official-letterhead">
             <div class="letter-contact">
-              <strong>DOKUMEN RESMI</strong>
+              <strong>DOKUMEN INTERNAL</strong>
               <span>Surat Reservasi dan Pengiriman Barang</span>
             </div>
           </div>
           <div class="letter-rule"></div>
           <div class="letter-heading">
-            <h1>SURAT RESERVASI / PENGIRIMAN BARANG</h1>
+            <h1>Goods Handover Certificate</h1>
             <div class="reservation-meta">
               <span>Document No: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
               <span>Date: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
@@ -76,8 +79,8 @@ if ($isPdf) {
           <p>Dengan hormat, berikut kami sampaikan data reservasi dan pengiriman barang untuk dapat digunakan sebagaimana mestinya.</p>
         </div>
 
-        <div class="reservation-body document-parties">
-          <section class="reservation-panel two-column-panel">
+        <div class="reservation-body parties-body">
+          <section class="reservation-panel">
             <div class="partner-column">
               <h3>I. First Party</h3>
               <div class="info-grid">
@@ -87,16 +90,15 @@ if ($isPdf) {
                 <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['sender_location'] ?? '-'); ?></span></div>
               </div>
             </div>
-            <div class="partner-column">
-              <h3>II. Data Penerima</h3>
-              <div class="info-grid">
-                <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span></div>
-                <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span></div>
-                <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span></div>
-                <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span></div>
-              </div>
-            </div>
           </section>
+
+          <aside class="reservation-panel barcode-panel">
+            <h3>SCAN TO VIEW ONLINE</h3>
+            <div class="barcode-box">
+              <div class="reservation-barcode" data-barcode-value="<?= htmlspecialchars($documentUrl); ?>" role="img" aria-label="QR code dokumen"></div>
+              <span class="barcode-value"><?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
+            </div>
+          </aside>
         </div>
 
         <div class="reservation-body document-items">
@@ -171,6 +173,21 @@ if ($isPdf) {
     </main>
   </body>
 </html>
+<?php if (!$isPdf): ?>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+  document.querySelectorAll('.reservation-barcode').forEach((barcode) => {
+    new QRCode(barcode, {
+      text: barcode.dataset.barcodeValue,
+      width: 100,
+      height: 100,
+      colorDark: '#0f172a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  });
+</script>
+<?php endif; ?>
 <?php if ($isPdf): ?>
 <?php
 $html = ob_get_clean();
