@@ -957,15 +957,24 @@ button {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 78px;
-  width: min(100%, 200px);
+  min-height: 128px;
+  width: min(100%, 128px);
   margin: 0 auto;
 }
 
 .reservation-barcode {
+  display: flex;
+  width: 100px;
+  height: 100px;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.reservation-barcode img {
   display: block;
-  width: min(100%, 170px);
-  height: auto;
+  width: 100px;
+  height: 100px;
   max-width: 100%;
 }
 
@@ -987,6 +996,21 @@ button {
   padding: 10px 12px;
   border-radius: 10px;
   font-weight: 700;
+}
+
+.parties-body {
+  grid-template-columns: minmax(0, 1fr) 210px !important;
+  align-items: start;
+}
+
+.parties-body .barcode-panel {
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .parties-body {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .reservation-actions {
@@ -1025,7 +1049,7 @@ button {
     min-width: 0;
   }
 
-  .reservation-body {
+  .reservation-body:not(.parties-body) {
     grid-template-columns: 1fr;
   }
 
@@ -1276,12 +1300,18 @@ button {
   }
 
   .barcode-box {
-    min-height: 72px;
+    min-height: 118px;
     padding: 10px 8px 7px;
   }
 
   .reservation-barcode {
-    width: min(100%, 170px);
+    width: 90px;
+    height: 90px;
+  }
+
+  .reservation-barcode img {
+    width: 90px;
+    height: 90px;
   }
 
   .barcode-value {

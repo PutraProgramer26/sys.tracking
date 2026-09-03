@@ -31,10 +31,10 @@ $itemsStmt->close();
 $connection->close();
 
 $baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
-$onlineUrl = rtrim($baseUrl, '/') . '/reservation.php?id=' . (int)$shipment['id'];
 $documentUrl = rtrim($baseUrl, '/') . '/shipping-document.php?id=' . (int)$shipment['id'];
 $signatureImage = $shipment['sender_signature'] ?? '';
 $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
+$isDelivered = ($shipment['status'] ?? '') === 'delivered';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -45,7 +45,7 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=3" />
   </head>
   <body>
     <div class="dashboard-shell">
@@ -54,6 +54,7 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
           <div class="brand-mark">TM</div>
           <div>
             <h1>Tracking Material</h1>
+
           </div>
           <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Hide sidebar">⟨</button>
         </div>
@@ -83,10 +84,10 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
             </div>
             <div class="letter-rule"></div>
             <div class="letter-heading">
-              <h1>SURAT RESERVASI / PENGIRIMAN BARANG</h1>
+              <h1>Goods Handover Certificate</h1>
               <div class="reservation-meta">
-                <span>Nomor: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
-                <span>Tanggal: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
+                <span>Document No: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
+                <span>Date: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
                 <span>Status: <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'))); ?></span>
               </div>
             </div>
@@ -97,9 +98,9 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
           </div>
 
           <div class="reservation-body parties-body">
-            <section class="reservation-panel two-column-panel">
+            <section class="reservation-panel">
               <div class="partner-column">
-                <h3>I. Data Pengirim</h3>
+                <h3>I. First Party</h3>
                 <div class="info-grid">
                   <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span></div>
                   <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span></div>
@@ -107,25 +108,16 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
                   <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['sender_location'] ?? '-'); ?></span></div>
                 </div>
               </div>
-              <div class="partner-column">
-                <h3>II. Data Penerima</h3>
-                <div class="info-grid">
-                  <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span></div>
-                  <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span></div>
-                  <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span></div>
-                  <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span></div>
-                </div>
-              </div>
             </section>
 
             <aside class="reservation-panel barcode-panel">
-              <h3>Identifikasi Dokumen</h3>
+              <h3>SCAN TO VIEW ONLINE</h3>
               <div class="barcode-box">
-                <svg class="reservation-barcode" data-barcode-value="<?= htmlspecialchars($documentUrl); ?>" role="img" aria-label="Barcode reservasi"></svg>
+                <div class="reservation-barcode" data-barcode-value="<?= htmlspecialchars($documentUrl); ?>" role="img" aria-label="QR code dokumen"></div>
                 <span class="barcode-value"><?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
               </div>
-              <a class="barcode-link" href="<?= htmlspecialchars($onlineUrl); ?>" target="_blank" rel="noopener noreferrer">Lihat Online</a>
             </aside>
+
           </div>
 
           <div class="reservation-body document-items" style="padding-top: 0;">
@@ -159,7 +151,7 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
 
           <div class="reservation-signature-row">
             <div class="reservation-panel signature-panel">
-              <h3>Pengirim</h3>
+              <h3>First Party</h3>
               <?php if (!empty($signatureImage)): ?>
                 <div class="sign-box large-sign-box">
                   <img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" />
@@ -174,6 +166,7 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
               </div>
             </div>
 
+            <?php if ($isDelivered): ?>
             <div class="reservation-panel signature-panel">
               <h3>Penerima</h3>
               <?php if (!empty($receiverSignatureImage)): ?>
@@ -189,6 +182,7 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
                 <span>Posisi: <?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span>
               </div>
             </div>
+            <?php endif; ?>
           </div>
 
           <div class="reservation-actions">
@@ -198,17 +192,16 @@ $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
         </div>
       </main>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
       document.querySelectorAll('.reservation-barcode').forEach((barcode) => {
-        JsBarcode(barcode, barcode.dataset.barcodeValue, {
-          format: 'CODE128',
-          displayValue: false,
-          height: 44,
-          width: 1.2,
-          margin: 0,
-          lineColor: '#0f172a',
-          background: '#ffffff'
+        new QRCode(barcode, {
+          text: barcode.dataset.barcodeValue,
+          width: 100,
+          height: 100,
+          colorDark: '#0f172a',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
         });
       });
     </script>

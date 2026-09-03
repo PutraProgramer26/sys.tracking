@@ -29,6 +29,7 @@ $connection->close();
 
 $signatureImage = $shipment['sender_signature'] ?? '';
 $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
+$isDelivered = ($shipment['status'] ?? '') === 'delivered';
 $status = ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'));
 $isPdf = isset($_GET['format']) && $_GET['format'] === 'pdf';
 $documentStyles = $isPdf && file_exists(__DIR__ . '/styles.css')
@@ -64,8 +65,8 @@ if ($isPdf) {
           <div class="letter-heading">
             <h1>SURAT RESERVASI / PENGIRIMAN BARANG</h1>
             <div class="reservation-meta">
-              <span>Nomor: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
-              <span>Tanggal: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
+              <span>Document No: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
+              <span>Date: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
               <span>Status: <?= htmlspecialchars($status); ?></span>
             </div>
           </div>
@@ -78,7 +79,7 @@ if ($isPdf) {
         <div class="reservation-body document-parties">
           <section class="reservation-panel two-column-panel">
             <div class="partner-column">
-              <h3>I. Data Pengirim</h3>
+              <h3>I. First Party</h3>
               <div class="info-grid">
                 <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span></div>
                 <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span></div>
@@ -138,7 +139,7 @@ if ($isPdf) {
 
         <div class="reservation-signature-row">
           <div class="reservation-panel signature-panel">
-            <h3>Pengirim</h3>
+            <h3>First Party</h3>
             <?php if (!empty($signatureImage)): ?>
               <div class="sign-box large-sign-box"><img src="<?= htmlspecialchars($signatureImage); ?>" alt="Signature pengirim" /></div>
             <?php else: ?>
@@ -150,6 +151,7 @@ if ($isPdf) {
               <span>Posisi: <?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span>
             </div>
           </div>
+          <?php if ($isDelivered): ?>
           <div class="reservation-panel signature-panel">
             <h3>Penerima</h3>
             <?php if (!empty($receiverSignatureImage)): ?>
@@ -163,6 +165,7 @@ if ($isPdf) {
               <span>Posisi: <?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span>
             </div>
           </div>
+          <?php endif; ?>
         </div>
       </div>
     </main>

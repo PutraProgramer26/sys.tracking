@@ -15,6 +15,7 @@ function ensureDatabaseSchema(mysqli $connection): void
         id INT AUTO_INCREMENT PRIMARY KEY,
         shipping_date DATE NULL,
         reservation_code VARCHAR(100) NOT NULL,
+        project_name VARCHAR(100) NULL,
         status VARCHAR(50) NOT NULL DEFAULT 'packing',
         sender_name VARCHAR(255) NULL,
         sender_uid VARCHAR(100) NULL,
@@ -42,6 +43,7 @@ function ensureDatabaseSchema(mysqli $connection): void
 
     ensureColumnExists($connection, 'shipments', 'sender_signature', 'LONGTEXT NULL');
     ensureColumnExists($connection, 'shipments', 'receiver_signature', 'LONGTEXT NULL');
+    ensureColumnExists($connection, 'shipments', 'project_name', 'VARCHAR(100) NULL');
     ensureColumnExists($connection, 'shipment_items', 'category', "VARCHAR(50) NOT NULL DEFAULT 'consumables'");
     ensureColumnExists($connection, 'shipment_items', 'category_alt', 'VARCHAR(100) NULL');
     ensureColumnExists($connection, 'shipment_items', 'note', 'VARCHAR(255) NULL');
@@ -79,9 +81,9 @@ function ensureDatabaseSchema(mysqli $connection): void
 function getDbConnection(): mysqli
 {
     $host = '127.0.0.1';
-    $user = 'u170828859_putra_';
-    $password = 'Programer260705';
-    $database = 'u170828859_sys_tracking';
+    $user = 'root';
+    $password = '';
+    $database = 'sys_tracking';
 
     $connection = @new mysqli($host, $user, $password, $database);
 

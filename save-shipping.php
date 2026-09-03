@@ -37,6 +37,7 @@ if (isset($_POST['goods_name']) && is_array($_POST['goods_name'])) {
 
 $shippingDate = $_POST['shipping_date'] ?? null;
 $reservationCode = trim((string)($_POST['reservation_code'] ?? ''));
+$projectName = strtoupper(trim((string)($_POST['project_name'] ?? '')));
 $status = $_POST['status'] ?? 'packing';
 $senderName = trim((string)($_POST['sender_name'] ?? ''));
 $senderUid = trim((string)($_POST['sender_uid'] ?? ''));
@@ -54,7 +55,24 @@ if ($senderSignature === '') {
     exit;
 }
 
-if ($reservationCode === '' || $senderName === '' || $receiverName === '' || empty($goods)) {
+$romanMonths = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
+$documentPattern = '/^(\d{3})\/([A-Z0-9-]+)\/JP\/([IVXLCDM]+)\/(\d{4})\/(\d{3})$/';
+$documentMatches = [];
+$dateTimestamp = $shippingDate ? strtotime((string)$shippingDate) : false;
+$documentIsValid = $reservationCode !== ''
+    && preg_match($documentPattern, strtoupper($reservationCode), $documentMatches) === 1
+    && $projectName !== ''
+    && strtoupper($documentMatches[2]) === $projectName
+    && $dateTimestamp !== false
+    && $documentMatches[3] === $romanMonths[(int)date('n', $dateTimestamp)]
+    && (int)$documentMatches[4] === (int)date('Y', $dateTimestamp);
+
+if (!$documentIsValid) {
+    header('Location: create-shipping.php?error=invalid_document_no');
+    exit;
+}
+
+if ($senderName === '' || empty($goods)) {
     header('Location: create-shipping.php?error=missing_required_fields');
     exit;
 }
@@ -64,20 +82,17 @@ try {
     $connection->begin_transaction();
 
     if ($updateId > 0) {
-        $stmt = $connection->prepare("UPDATE shipments SET shipping_date = ?, reservation_code = ?, status = ?, sender_name = ?, sender_uid = ?, sender_position = ?, sender_location = ?, receiver_name = ?, receiver_uid = ?, receiver_position = ?, receiver_location = ?, sender_signature = ? WHERE id = ?");
+        $stmt = $connection->prepare("UPDATE shipments SET shipping_date = ?, reservation_code = ?, project_name = ?, status = ?, sender_name = ?, sender_uid = ?, sender_position = ?, sender_location = ?, sender_signature = ? WHERE id = ?");
         $stmt->bind_param(
-            'ssssssssssssi',
+            'sssssssssi',
             $shippingDate,
             $reservationCode,
+            $projectName,
             $status,
             $senderName,
             $senderUid,
             $senderPosition,
             $senderLocation,
-            $receiverName,
-            $receiverUid,
-            $receiverPosition,
-            $receiverLocation,
             $senderSignature,
             $updateId
         );
@@ -86,11 +101,12 @@ try {
         $shipmentId = $updateId;
         $connection->query('DELETE FROM shipment_items WHERE shipment_id = ' . $shipmentId);
     } else {
-        $stmt = $connection->prepare("INSERT INTO shipments (shipping_date, reservation_code, status, sender_name, sender_uid, sender_position, sender_location, receiver_name, receiver_uid, receiver_position, receiver_location, sender_signature) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $connection->prepare("INSERT INTO shipments (shipping_date, reservation_code, project_name, status, sender_name, sender_uid, sender_position, sender_location, receiver_name, receiver_uid, receiver_position, receiver_location, sender_signature) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param(
-            'ssssssssssss',
+            'sssssssssssss',
             $shippingDate,
             $reservationCode,
+            $projectName,
             $status,
             $senderName,
             $senderUid,

@@ -39,12 +39,6 @@ $senderFields = [
     ['label' => 'Lokasi', 'name' => 'sender_location', 'placeholder' => 'Masukkan lokasi pengirim']
 ];
 
-$receiverFields = [
-    ['label' => 'Nama', 'name' => 'receiver_name', 'placeholder' => 'Masukkan nama penerima'],
-    ['label' => 'UID', 'name' => 'receiver_uid', 'placeholder' => 'Masukkan UID penerima'],
-    ['label' => 'Position', 'name' => 'receiver_position', 'placeholder' => 'Masukkan posisi'],
-    ['label' => 'Lokasi', 'name' => 'receiver_location', 'placeholder' => 'Masukkan lokasi penerima']
-];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -116,6 +110,8 @@ $receiverFields = [
           <div class="form-message error">Pengirim wajib melakukan E-Sign sebelum menyimpan data pengiriman.</div>
         <?php elseif (isset($_GET['error']) && $_GET['error'] === 'missing_required_fields'): ?>
           <div class="form-message error">Silakan lengkapi data pengiriman dan minimal satu item barang sebelum menyimpan.</div>
+        <?php elseif (isset($_GET['error']) && $_GET['error'] === 'invalid_document_no'): ?>
+          <div class="form-message error">Document No harus mengikuti format 040/SRM/JP/VI/2026/001 dan sesuai dengan Project serta tanggal pengiriman.</div>
         <?php elseif (isset($_GET['error']) && $_GET['error'] === 'save_failed'): ?>
           <div class="form-message error">Data gagal disimpan. Periksa koneksi database atau lengkapi semua field yang diperlukan.</div>
         <?php endif; ?>
@@ -131,11 +127,15 @@ $receiverFields = [
             <div class="form-grid">
               <div class="field-group">
                 <label for="shipping_date">Tanggal Pengiriman</label>
-                <input id="shipping_date" name="shipping_date" type="date" value="<?= htmlspecialchars($formShipment['shipping_date'] ?? ''); ?>" />
+                <input id="shipping_date" name="shipping_date" type="date" value="<?= htmlspecialchars($formShipment['shipping_date'] ?? ''); ?>" required />
               </div>
               <div class="field-group">
-                <label for="reservation_code">Kode Reservasi Pengiriman</label>
-                <input id="reservation_code" name="reservation_code" type="text" value="<?= htmlspecialchars($formShipment['reservation_code'] ?? ''); ?>" placeholder="Contoh: RES-2026-001" />
+                <label for="reservation_code">Document No</label>
+                <input id="reservation_code" name="reservation_code" type="text" value="<?= htmlspecialchars($formShipment['reservation_code'] ?? ''); ?>" placeholder="040/SRM/JP/VI/2026/001" pattern="[0-9]{3}/[A-Za-z0-9-]+/JP/[IVXLCDM]+/[0-9]{4}/[0-9]{3}" title="Format: 040/SRM/JP/VI/2026/001" readonly required />
+              </div>
+              <div class="field-group">
+                <label for="project_name">Project</label>
+                <input id="project_name" name="project_name" type="text" value="<?= htmlspecialchars($formShipment['project_name'] ?? ''); ?>" placeholder="Contoh: SRM" maxlength="100" required />
               </div>
               <div class="field-group full-width">
                 <label for="status">Status Pengiriman</label>
@@ -155,20 +155,6 @@ $receiverFields = [
             </div>
             <div class="form-grid">
               <?php foreach ($senderFields as $field): ?>
-                <div class="field-group">
-                  <label for="<?= $field['name']; ?>"><?= $field['label']; ?></label>
-                  <input id="<?= $field['name']; ?>" name="<?= $field['name']; ?>" type="text" value="<?= htmlspecialchars($formShipment[$field['name']] ?? ''); ?>" placeholder="<?= $field['placeholder']; ?>" />
-                </div>
-              <?php endforeach; ?>
-            </div>
-          </section>
-
-          <section class="form-panel">
-            <div class="section-header">
-              <h3>Informasi Penerima</h3>
-            </div>
-            <div class="form-grid">
-              <?php foreach ($receiverFields as $field): ?>
                 <div class="field-group">
                   <label for="<?= $field['name']; ?>"><?= $field['label']; ?></label>
                   <input id="<?= $field['name']; ?>" name="<?= $field['name']; ?>" type="text" value="<?= htmlspecialchars($formShipment[$field['name']] ?? ''); ?>" placeholder="<?= $field['placeholder']; ?>" />
@@ -227,7 +213,7 @@ $receiverFields = [
 
           <section class="form-panel">
             <div class="section-header">
-              <h3>E-Sign Pengirim</h3>
+              <h3>E-Sign First Party</h3>
             </div>
             <div class="esign-panel">
               <p class="esign-note">Pengirim wajib menandatangani area berikut sebelum menekan tombol Save Shipping.</p>
@@ -246,6 +232,40 @@ $receiverFields = [
     <script>
       const goodsContainer = document.getElementById('goods-container');
       const addItemBtn = document.getElementById('add-item-btn');
+      const projectInput = document.getElementById('project_name');
+      const shippingDateInput = document.getElementById('shipping_date');
+      const documentNoInput = document.getElementById('reservation_code');
+
+      const romanMonths = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+      let documentNumberRequest = 0;
+
+      async function updateDocumentNo() {
+        const project = projectInput.value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+        const dateValue = shippingDateInput.value;
+        if (!project || !dateValue) {
+          documentNoInput.value = '';
+          return;
+        }
+
+        const date = new Date(`${dateValue}T00:00:00`);
+        const requestId = ++documentNumberRequest;
+        documentNoInput.value = 'Mengambil nomor...';
+
+        try {
+          const response = await fetch(`next-document-number.php?project=${encodeURIComponent(project)}&date=${encodeURIComponent(dateValue)}`);
+          const sequence = await response.json();
+          if (!response.ok || requestId !== documentNumberRequest) {
+            throw new Error('Nomor dokumen tidak tersedia');
+          }
+
+          documentNoInput.value = `${sequence.project_sequence}/${project}/JP/${romanMonths[date.getMonth() + 1]}/${date.getFullYear()}/${sequence.daily_sequence}`;
+        } catch (error) {
+          documentNoInput.value = '';
+        }
+      }
+
+      projectInput.addEventListener('input', updateDocumentNo);
+      shippingDateInput.addEventListener('change', updateDocumentNo);
 
       function createGoodsRow() {
         const row = document.createElement('div');

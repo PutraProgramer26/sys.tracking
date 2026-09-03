@@ -232,8 +232,10 @@ $connection->close();
         let statusChanged = false;
 
         function updateSignatureVisibility() {
+          const receiverDataIncomplete = Array.from(receiverInputs).some((input) => !input.value.trim())
+            || !hiddenInput.value.trim();
           const isRequired = statusSelect.value === 'delivered'
-            && (savedStatus !== 'delivered' || statusChanged);
+            && (savedStatus !== 'delivered' || statusChanged || receiverDataIncomplete);
           deliveryFields.style.display = isRequired ? 'grid' : 'none';
           signatureWrap.style.display = isRequired ? 'block' : 'none';
           receiverInputs.forEach((input) => {
