@@ -81,9 +81,9 @@ function ensureDatabaseSchema(mysqli $connection): void
 function getDbConnection(): mysqli
 {
     $host = '127.0.0.1';
-    $user = 'root';
-    $password = '';
-    $database = 'sys_tracking';
+    $user = 'u170828859_putra_';
+    $password = 'Programer260705';
+    $database = 'u170828859_sys_tracking';
 
     $connection = @new mysqli($host, $user, $password, $database);
 
