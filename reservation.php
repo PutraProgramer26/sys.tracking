@@ -197,8 +197,8 @@ $formattedDate = !empty($shipment['shipping_date']) ? date('d F Y', strtotime($s
       document.querySelectorAll('.handover-qr').forEach((qr) => {
         new QRCode(qr, {
           text: qr.dataset.qrValue,
-          width: 92,
-          height: 92,
+          width: 104,
+          height: 104,
           colorDark: '#111827',
           colorLight: '#ffffff',
           correctLevel: QRCode.CorrectLevel.M
