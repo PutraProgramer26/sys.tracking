@@ -43,10 +43,12 @@ function ensureDatabaseSchema(mysqli $connection): void
 
     ensureColumnExists($connection, 'shipments', 'sender_signature', 'LONGTEXT NULL');
     ensureColumnExists($connection, 'shipments', 'receiver_signature', 'LONGTEXT NULL');
+    ensureColumnExists($connection, 'shipments', 'share_token', 'VARCHAR(64) NULL');
     ensureColumnExists($connection, 'shipments', 'project_name', 'VARCHAR(100) NULL');
     ensureColumnExists($connection, 'shipment_items', 'category', "VARCHAR(50) NOT NULL DEFAULT 'consumables'");
     ensureColumnExists($connection, 'shipment_items', 'category_alt', 'VARCHAR(100) NULL');
     ensureColumnExists($connection, 'shipment_items', 'note', 'VARCHAR(255) NULL');
+    $connection->query("UPDATE shipments SET share_token = SHA2(CONCAT(id, UUID(), RAND()), 256) WHERE share_token IS NULL OR share_token = ''");
 
     $connection->query("CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,

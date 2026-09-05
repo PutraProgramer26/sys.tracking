@@ -11,6 +11,22 @@ $statusOptions = [
     'delivered' => 'Delivered'
 ];
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+  $shipmentId = (int)($_POST['shipment_id'] ?? 0);
+
+  if ($shipmentId > 0) {
+    $connection = getDbConnection();
+    $statement = $connection->prepare('DELETE FROM shipments WHERE id = ?');
+    $statement->bind_param('i', $shipmentId);
+    $statement->execute();
+    $statement->close();
+    $connection->close();
+  }
+
+  header('Location: shipping-monitoring.php');
+  exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $shipmentId = (int) ($_POST['shipment_id'] ?? -1);
     $newStatus = $_POST['status'] ?? 'packing';
@@ -50,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 
 $connection = getDbConnection();
 $shipments = [];
+$baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
 
 $result = $connection->query("SELECT * FROM shipments ORDER BY id DESC");
 if ($result) {
@@ -206,7 +223,24 @@ $connection->close();
                           </select>
                           <button type="submit" class="secondary-btn small-btn">Update</button>
                           <a class="inline-link view-doc-btn" href="reservation.php?id=<?= (int)($shipment['id'] ?? 0); ?>">View Surat</a>
+                          <?php if (!empty($shipment['share_token'])): ?>
+                            <?php $shareUrl = $baseUrl . '/recipient-share.php?token=' . urlencode($shipment['share_token']); ?>
+                            <button type="button" class="inline-link view-doc-btn share-link-btn" data-share-url="<?= htmlspecialchars($shareUrl); ?>">Share link</button>
+                            <div class="share-link-panel" hidden>
+                              <span class="share-link-label">Link recipient</span>
+                              <div class="share-link-row">
+                                <input type="text" class="share-link-input" value="<?= htmlspecialchars($shareUrl); ?>" readonly />
+                                <button type="button" class="secondary-btn small-btn copy-share-btn">Salin</button>
+                              </div>
+                              <a class="share-link-open" href="<?= htmlspecialchars($shareUrl); ?>" target="_blank" rel="noopener">Buka halaman penerima</a>
+                            </div>
+                          <?php endif; ?>
                         </div>
+                      </form>
+                      <form method="post" class="monitoring-delete-form" onsubmit="return confirm('Hapus shipment ini beserta seluruh detail barangnya?');">
+                        <input type="hidden" name="action" value="delete" />
+                        <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)($shipment['id'] ?? $index)); ?>" />
+                        <button type="submit" class="delete-shipment-btn">Delete</button>
                       </form>
                     </td>
                   </tr>
@@ -316,6 +350,35 @@ $connection->close();
               event.preventDefault();
               window.alert('Untuk status Delivered, penerima wajib mengisi nama, UID, posisi, dan E-Sign terlebih dahulu.');
             }
+          }
+        });
+      });
+    </script>
+    <script>
+      document.querySelectorAll('.share-link-btn').forEach((button) => {
+        const panel = button.parentElement.querySelector('.share-link-panel');
+        const input = panel.querySelector('.share-link-input');
+        const copyButton = panel.querySelector('.copy-share-btn');
+
+        button.addEventListener('click', () => {
+          const isOpen = !panel.hidden;
+          document.querySelectorAll('.share-link-panel').forEach((item) => { item.hidden = true; });
+          panel.hidden = isOpen;
+          if (!isOpen) {
+            input.focus();
+            input.select();
+          }
+        });
+
+        copyButton.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(input.value);
+            copyButton.textContent = 'Tersalin';
+            window.setTimeout(() => { copyButton.textContent = 'Salin'; }, 1600);
+          } catch (error) {
+            input.focus();
+            input.select();
+            document.execCommand('copy');
           }
         });
       });

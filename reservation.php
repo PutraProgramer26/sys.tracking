@@ -110,6 +110,18 @@ $isDelivered = ($shipment['status'] ?? '') === 'delivered';
               </div>
             </section>
 
+            <section class="reservation-panel">
+              <div class="partner-column">
+                <h3>II. Second Party</h3>
+                <div class="info-grid">
+                  <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span></div>
+                </div>
+              </div>
+            </section>
+
             <aside class="reservation-panel barcode-panel">
               <h3>SCAN TO VIEW ONLINE</h3>
               <div class="barcode-box">

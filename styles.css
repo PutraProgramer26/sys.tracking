@@ -676,6 +676,79 @@ button {
   border-radius: 10px;
 }
 
+.share-link-btn {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.share-link-panel {
+  flex: 1 1 100%;
+  min-width: min(100%, 360px);
+  padding: 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  background: #eff6ff;
+}
+
+.share-link-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #1e3a8a;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.share-link-row {
+  display: flex;
+  gap: 8px;
+}
+
+.share-link-input {
+  min-width: 0;
+  flex: 1;
+  padding: 9px 10px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: white;
+  color: #334155;
+  font: 0.76rem "Inter", sans-serif;
+}
+
+.share-link-open {
+  display: inline-block;
+  margin-top: 8px;
+  color: #1d4ed8;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.monitoring-delete-form {
+  margin-top: 8px;
+}
+
+.delete-shipment-btn {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.delete-shipment-btn:hover {
+  border-color: #fca5a5;
+  background: #fee2e2;
+}
+
 .reservation-page {
   padding: 32px 28px 40px;
 }
@@ -892,6 +965,50 @@ button {
   gap: 18px;
 }
 
+.recipient-form {
+  padding: 0 42px 28px;
+}
+
+.recipient-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  margin-bottom: 18px;
+}
+
+.recipient-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.recipient-form input[type="text"] {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: var(--ink);
+  font: inherit;
+  box-sizing: border-box;
+}
+
+#recipientSignature {
+  display: block;
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+  margin: 8px 0 18px;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  background: #fff;
+  touch-action: none;
+}
+
 .reservation-signature-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1098,6 +1215,10 @@ button {
   }
 
   .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recipient-fields {
     grid-template-columns: 1fr;
   }
 }

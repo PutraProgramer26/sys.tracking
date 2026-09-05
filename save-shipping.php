@@ -49,6 +49,7 @@ $receiverPosition = trim((string)($_POST['receiver_position'] ?? ''));
 $receiverLocation = trim((string)($_POST['receiver_location'] ?? ''));
 $senderSignature = trim((string)($_POST['sender_signature'] ?? ''));
 $updateId = (int)($_POST['update_id'] ?? 0);
+$shareToken = bin2hex(random_bytes(32));
 
 if ($senderSignature === '') {
     header('Location: create-shipping.php?error=signature_required');
@@ -101,9 +102,9 @@ try {
         $shipmentId = $updateId;
         $connection->query('DELETE FROM shipment_items WHERE shipment_id = ' . $shipmentId);
     } else {
-        $stmt = $connection->prepare("INSERT INTO shipments (shipping_date, reservation_code, project_name, status, sender_name, sender_uid, sender_position, sender_location, receiver_name, receiver_uid, receiver_position, receiver_location, sender_signature) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $connection->prepare("INSERT INTO shipments (shipping_date, reservation_code, project_name, status, sender_name, sender_uid, sender_position, sender_location, receiver_name, receiver_uid, receiver_position, receiver_location, sender_signature, share_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param(
-            'sssssssssssss',
+            'ssssssssssssss',
             $shippingDate,
             $reservationCode,
             $projectName,
@@ -116,7 +117,8 @@ try {
             $receiverUid,
             $receiverPosition,
             $receiverLocation,
-            $senderSignature
+            $senderSignature,
+            $shareToken
         );
         $stmt->execute();
         $shipmentId = $stmt->insert_id;
