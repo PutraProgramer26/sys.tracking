@@ -32,30 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
     $newStatus = $_POST['status'] ?? 'packing';
 
     if ($shipmentId > 0) {
+      if ($newStatus === 'delivered') {
+        header('Location: shipping-monitoring.php?error=complete_recipient_data&shipment_id=' . $shipmentId);
+        exit;
+      }
+
         $connection = getDbConnection();
 
-        if ($newStatus === 'delivered') {
-            $receiverName = trim((string)($_POST['receiver_name'] ?? ''));
-            $receiverUid = trim((string)($_POST['receiver_uid'] ?? ''));
-            $receiverPosition = trim((string)($_POST['receiver_position'] ?? ''));
-            $receiverSignature = trim((string)($_POST['receiver_signature'] ?? ''));
-
-            if ($receiverName === '' || $receiverUid === '' || $receiverPosition === '' || $receiverSignature === '') {
-                $connection->close();
-                header('Location: shipping-monitoring.php?error=delivered_requires_receiver_data');
-                exit;
-            }
-
-            $statement = $connection->prepare('UPDATE shipments SET status = ?, receiver_name = ?, receiver_uid = ?, receiver_position = ?, receiver_signature = ? WHERE id = ?');
-            $statement->bind_param('sssssi', $newStatus, $receiverName, $receiverUid, $receiverPosition, $receiverSignature, $shipmentId);
-            $statement->execute();
-            $statement->close();
-        } else {
-            $statement = $connection->prepare('UPDATE shipments SET status = ? WHERE id = ?');
-            $statement->bind_param('si', $newStatus, $shipmentId);
-            $statement->execute();
-            $statement->close();
-        }
+      $statement = $connection->prepare('UPDATE shipments SET status = ? WHERE id = ?');
+      $statement->bind_param('si', $newStatus, $shipmentId);
+      $statement->execute();
+      $statement->close();
 
         $connection->close();
     }
@@ -154,8 +141,8 @@ $connection->close();
           </div>
         </header>
 
-        <?php if (isset($_GET['error']) && $_GET['error'] === 'delivered_requires_receiver_data'): ?>
-          <div class="form-message error">Untuk mengubah status menjadi Delivered, penerima wajib mengisi nama, UID, posisi, dan E-Sign sebelum menyimpan.</div>
+        <?php if (isset($_GET['error']) && $_GET['error'] === 'complete_recipient_data'): ?>
+          <div class="form-message error">Lengkapi data Second Party dan E-Sign melalui halaman pengisian yang tersedia.</div>
         <?php endif; ?>
 
         <section class="tracking-table-wrap monitoring-table-wrap">
@@ -203,28 +190,22 @@ $connection->close();
                       </span>
                     </td>
                     <td>
-                      <form method="post" class="status-form delivery-form" data-shipment-id="<?= htmlspecialchars((string)($shipment['id'] ?? $index)); ?>">
-                        <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)($shipment['id'] ?? $index)); ?>" />
+                      <?php $shipmentId = (int)($shipment['id'] ?? $index); ?>
+                      <?php $recipientUrl = !empty($shipment['share_token']) ? 'recipient-share.php?token=' . urlencode($shipment['share_token']) : ''; ?>
+                      <form method="post" class="status-form delivery-form">
+                        <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)$shipmentId); ?>" />
                         <input type="hidden" name="update_status" value="1" />
-                        <div class="delivery-fields">
-                          <input type="text" name="receiver_name" class="status-input" value="<?= htmlspecialchars($shipment['receiver_name'] ?? ''); ?>" placeholder="Nama penerima" />
-                          <input type="text" name="receiver_uid" class="status-input" value="<?= htmlspecialchars($shipment['receiver_uid'] ?? ''); ?>" placeholder="UID penerima" />
-                          <input type="text" name="receiver_position" class="status-input" value="<?= htmlspecialchars($shipment['receiver_position'] ?? ''); ?>" placeholder="Posisi penerima" />
-                          <div class="signature-stack small-signature delivery-signature-wrap">
-                            <canvas class="delivery-signature" width="280" height="90" data-signature-name="receiver_signature_<?= htmlspecialchars((string)($shipment['id'] ?? $index)); ?>"></canvas>
-                            <input type="hidden" name="receiver_signature" class="receiver-signature-input" value="<?= htmlspecialchars($shipment['receiver_signature'] ?? ''); ?>" />
-                          </div>
-                        </div>
                         <div class="status-controls">
                           <select name="status" class="status-select">
                             <?php foreach ($statusOptions as $value => $label): ?>
                               <option value="<?= $value; ?>" <?= (($shipment['status'] ?? 'packing') === $value) ? 'selected' : ''; ?>><?= $label; ?></option>
                             <?php endforeach; ?>
                           </select>
-                          <button type="submit" class="secondary-btn small-btn">Update</button>
+                          <button type="submit" class="secondary-btn small-btn status-update-btn">Update</button>
                           <a class="inline-link view-doc-btn" href="reservation.php?id=<?= (int)($shipment['id'] ?? 0); ?>">View Surat</a>
                           <?php if (!empty($shipment['share_token'])): ?>
                             <?php $shareUrl = $baseUrl . '/recipient-share.php?token=' . urlencode($shipment['share_token']); ?>
+                            <a class="inline-link recipient-data-link" href="<?= htmlspecialchars($recipientUrl); ?>" hidden>Isi Second Party &amp; E-Sign</a>
                             <button type="button" class="inline-link view-doc-btn share-link-btn" data-share-url="<?= htmlspecialchars($shareUrl); ?>">Share link</button>
                             <div class="share-link-panel" hidden>
                               <span class="share-link-label">Link recipient</span>
@@ -239,7 +220,7 @@ $connection->close();
                       </form>
                       <form method="post" class="monitoring-delete-form" onsubmit="return confirm('Hapus shipment ini beserta seluruh detail barangnya?');">
                         <input type="hidden" name="action" value="delete" />
-                        <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)($shipment['id'] ?? $index)); ?>" />
+                        <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)$shipmentId); ?>" />
                         <button type="submit" class="delete-shipment-btn">Delete</button>
                       </form>
                     </td>
@@ -254,104 +235,20 @@ $connection->close();
     <script src="sidebar.js"></script>
     <script>
       document.querySelectorAll('.delivery-form').forEach((form) => {
-        const canvas = form.querySelector('.delivery-signature');
-        const hiddenInput = form.querySelector('.receiver-signature-input');
-        const deliveryFields = form.querySelector('.delivery-fields');
-        const signatureWrap = form.querySelector('.delivery-signature-wrap');
         const statusSelect = form.querySelector('select[name="status"]');
-        const receiverInputs = form.querySelectorAll('.delivery-fields input:not([type="hidden"])');
-        const savedStatus = statusSelect.value;
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
-        let statusChanged = false;
+        const updateButton = form.querySelector('.status-update-btn');
+        const recipientLink = form.querySelector('.recipient-data-link');
 
-        function updateSignatureVisibility() {
-          const receiverDataIncomplete = Array.from(receiverInputs).some((input) => !input.value.trim())
-            || !hiddenInput.value.trim();
-          const isRequired = statusSelect.value === 'delivered'
-            && (savedStatus !== 'delivered' || statusChanged || receiverDataIncomplete);
-          deliveryFields.style.display = isRequired ? 'grid' : 'none';
-          signatureWrap.style.display = isRequired ? 'block' : 'none';
-          receiverInputs.forEach((input) => {
-            input.required = isRequired;
-          });
-          canvas.setAttribute('aria-hidden', isRequired ? 'false' : 'true');
-        }
-
-        statusSelect.addEventListener('change', () => {
-          statusChanged = true;
-          updateSignatureVisibility();
-        });
-        updateSignatureVisibility();
-
-        const initialSignature = hiddenInput.value || '';
-        if (initialSignature) {
-          const img = new Image();
-          img.onload = function () {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          };
-          img.src = initialSignature;
-        }
-
-        const getPoint = (event) => {
-          const rect = canvas.getBoundingClientRect();
-          const scaleX = canvas.width / rect.width;
-          const scaleY = canvas.height / rect.height;
-          const x = (event.clientX - rect.left) * scaleX;
-          const y = (event.clientY - rect.top) * scaleY;
-          return { x, y };
-        };
-
-        const startDraw = (event) => {
-          if (statusSelect.value !== 'delivered') return;
-          drawing = true;
-          const point = getPoint(event);
-          ctx.beginPath();
-          ctx.moveTo(point.x, point.y);
-          ctx.lineTo(point.x, point.y);
-          ctx.stroke();
-        };
-
-        const moveDraw = (event) => {
-          if (!drawing || statusSelect.value !== 'delivered') return;
-          const point = getPoint(event);
-          ctx.lineTo(point.x, point.y);
-          ctx.stroke();
-        };
-
-        const stopDraw = () => {
-          if (statusSelect.value !== 'delivered') return;
-          drawing = false;
-          ctx.beginPath();
-          hiddenInput.value = canvas.toDataURL('image/png');
-        };
-
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.strokeStyle = '#0f172a';
-
-        canvas.addEventListener('pointerdown', startDraw);
-        canvas.addEventListener('pointermove', moveDraw);
-        canvas.addEventListener('pointerup', stopDraw);
-        canvas.addEventListener('pointerleave', stopDraw);
-        canvas.addEventListener('pointercancel', stopDraw);
-
-        form.addEventListener('submit', (event) => {
-          const statusValue = statusSelect.value;
-          const nameValue = form.querySelector('input[name="receiver_name"]').value.trim();
-          const uidValue = form.querySelector('input[name="receiver_uid"]').value.trim();
-          const positionValue = form.querySelector('input[name="receiver_position"]').value.trim();
-          const signatureValue = hiddenInput.value.trim();
-
-          if (statusValue === 'delivered') {
-            if (!nameValue || !uidValue || !positionValue || !signatureValue || signatureValue === 'data:,') {
-              event.preventDefault();
-              window.alert('Untuk status Delivered, penerima wajib mengisi nama, UID, posisi, dan E-Sign terlebih dahulu.');
-            }
+        const updateDeliveredAction = () => {
+          const isDelivered = statusSelect.value === 'delivered';
+          updateButton.hidden = isDelivered;
+          if (recipientLink) {
+            recipientLink.hidden = !isDelivered;
           }
-        });
+        };
+
+        statusSelect.addEventListener('change', updateDeliveredAction);
+        updateDeliveredAction();
       });
     </script>
     <script>

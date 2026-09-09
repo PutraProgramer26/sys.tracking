@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update->execute();
         $update->close();
         $connection->close();
-        header('Location: shipping-document.php?id=' . $shipmentId);
+        header('Location: reservation.php?id=' . $shipmentId);
         exit;
     }
 }

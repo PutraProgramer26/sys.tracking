@@ -31,6 +31,7 @@ $baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
 $documentUrl = rtrim($baseUrl, '/') . '/shipping-document.php?id=' . (int)$shipment['id'];
 $signatureImage = $shipment['sender_signature'] ?? '';
 $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
+$hasSecondParty = trim((string)($shipment['receiver_name'] ?? '')) !== '';
 $isDelivered = ($shipment['status'] ?? '') === 'delivered';
 $isDelivered = ($shipment['status'] ?? '') === 'delivered';
 $status = ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'));
@@ -79,7 +80,7 @@ if ($isPdf) {
           <p>Dengan hormat, berikut kami sampaikan data reservasi dan pengiriman barang untuk dapat digunakan sebagaimana mestinya.</p>
         </div>
 
-        <div class="reservation-body parties-body">
+        <div class="reservation-body parties-body<?= $hasSecondParty ? '' : ' parties-body-without-second-party'; ?>">
           <section class="reservation-panel">
             <div class="partner-column">
               <h3>I. First Party</h3>
@@ -92,17 +93,19 @@ if ($isPdf) {
             </div>
           </section>
 
-          <section class="reservation-panel">
-            <div class="partner-column">
-              <h3>II. Second Party</h3>
-              <div class="info-grid">
-                <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span></div>
-                <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span></div>
-                <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span></div>
-                <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span></div>
+          <?php if ($hasSecondParty): ?>
+            <section class="reservation-panel">
+              <div class="partner-column">
+                <h3>II. Second Party</h3>
+                <div class="info-grid">
+                  <div class="info-item"><label>Nama</label><span><?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>UID</label><span><?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Posisi</label><span><?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span></div>
+                  <div class="info-item"><label>Lokasi</label><span><?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span></div>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          <?php endif; ?>
 
           <aside class="reservation-panel barcode-panel">
             <h3>SCAN TO VIEW ONLINE</h3>

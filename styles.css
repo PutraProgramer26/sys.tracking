@@ -1124,6 +1124,10 @@ button {
   grid-template-columns: 1fr;
 }
 
+.parties-body-without-second-party {
+  grid-template-columns: minmax(0, 1fr) 170px !important;
+}
+
 .parties-body .barcode-panel {
   min-width: 0;
 }
@@ -1345,6 +1349,10 @@ button {
 
   .parties-body {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(100px, 145px) !important;
+  }
+
+  .parties-body.parties-body-without-second-party {
+    grid-template-columns: minmax(0, 1fr) minmax(100px, 145px) !important;
   }
 
   .parties-body .two-column-panel,
