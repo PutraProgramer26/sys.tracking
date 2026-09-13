@@ -36,6 +36,7 @@ $isDelivered = ($shipment['status'] ?? '') === 'delivered';
 $isDelivered = ($shipment['status'] ?? '') === 'delivered';
 $status = ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'));
 $isPdf = isset($_GET['format']) && $_GET['format'] === 'pdf';
+$downloadPdf = $isPdf && isset($_GET['download']) && $_GET['download'] === '1';
 $documentStyles = $isPdf && file_exists(__DIR__ . '/styles.css')
   ? '<style>' . file_get_contents(__DIR__ . '/styles.css') . '</style>'
   : '<link rel="stylesheet" href="styles.css?v=4" />';
@@ -215,7 +216,7 @@ $dompdf = new \Dompdf\Dompdf($options);
 $dompdf->loadHtml($html, 'UTF-8');
 $dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
-$dompdf->stream('goods-handover-' . ($shipment['reservation_code'] ?? 'document') . '.pdf', ['Attachment' => false]);
+$dompdf->stream('goods-handover-' . ($shipment['reservation_code'] ?? 'document') . '.pdf', ['Attachment' => $downloadPdf]);
 exit;
 ?>
 <?php endif; ?>
