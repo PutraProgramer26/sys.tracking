@@ -191,11 +191,13 @@ if ($isPdf) {
 <?php if (!$isPdf): ?>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
+  const qrSize = window.matchMedia('(max-width: 560px)').matches ? 132 : 100;
+
   document.querySelectorAll('.reservation-barcode').forEach((barcode) => {
     new QRCode(barcode, {
       text: barcode.dataset.barcodeValue,
-      width: 100,
-      height: 100,
+      width: qrSize,
+      height: qrSize,
       colorDark: '#0f172a',
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M

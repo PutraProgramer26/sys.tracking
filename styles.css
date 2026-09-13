@@ -1236,6 +1236,137 @@ button {
   }
 }
 
+@media (max-width: 560px) {
+  .document-only-page {
+    padding: 12px 10px 24px;
+  }
+
+  .document-only-page .reservation-document {
+    width: 100%;
+    border-radius: 10px;
+    font-size: 0.88rem;
+  }
+
+  .document-only-page .reservation-header {
+    padding: 20px 16px 14px;
+  }
+
+  .document-only-page .letter-rule {
+    margin-top: 16px;
+  }
+
+  .document-only-page .letter-heading {
+    padding-top: 16px;
+  }
+
+  .document-only-page .reservation-header h1 {
+    font-size: 1.05rem;
+    line-height: 1.3;
+  }
+
+  .document-only-page .reservation-meta {
+    align-items: center;
+    gap: 6px 12px;
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+
+  .document-only-page .letter-intro,
+  .document-only-page .letter-closing {
+    padding-right: 16px;
+    padding-left: 16px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .document-only-page .parties-body {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .document-only-page .reservation-panel {
+    min-width: 0;
+    padding: 13px 14px 12px;
+  }
+
+  .document-only-page .partner-column {
+    padding: 0;
+  }
+
+  .document-only-page .info-grid {
+    gap: 9px;
+  }
+
+  .document-only-page .info-item span {
+    overflow-wrap: anywhere;
+  }
+
+  .document-only-page .barcode-panel {
+    align-items: center;
+    padding: 14px;
+  }
+
+  .document-only-page .barcode-panel h3 {
+    width: 100%;
+    text-align: center;
+  }
+
+  .document-only-page .barcode-box {
+    width: 156px;
+    min-height: 156px;
+    padding: 10px 8px 8px;
+  }
+
+  .document-only-page .reservation-barcode,
+  .document-only-page .reservation-barcode img,
+  .document-only-page .reservation-barcode canvas {
+    width: 132px !important;
+    height: 132px !important;
+  }
+
+  .document-only-page .barcode-value {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .document-only-page .document-items {
+    display: block;
+    padding: 0 14px 12px;
+  }
+
+  .document-only-page .document-items .reservation-panel {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .document-only-page .items-table {
+    min-width: 620px;
+  }
+
+  .document-only-page .items-table th,
+  .document-only-page .items-table td {
+    padding: 7px 6px;
+    font-size: 0.7rem;
+    overflow-wrap: anywhere;
+  }
+
+  .document-only-page .reservation-signature-row {
+    gap: 12px;
+    padding: 0 14px 14px;
+  }
+
+  .document-only-page .signature-panel {
+    min-height: 0;
+  }
+
+  .document-only-page .signature-meta {
+    gap: 4px;
+    font-size: 0.7rem;
+  }
+}
+
 @page {
   size: A4;
   margin: 12mm;
