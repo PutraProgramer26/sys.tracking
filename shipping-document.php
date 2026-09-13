@@ -29,6 +29,7 @@ $connection->close();
 
 $baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']);
 $documentUrl = rtrim($baseUrl, '/') . '/shipping-document.php?id=' . (int)$shipment['id'];
+$qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=90x90&format=png&data=' . rawurlencode($documentUrl);
 $signatureImage = $shipment['sender_signature'] ?? '';
 $receiverSignatureImage = $shipment['receiver_signature'] ?? '';
 $hasSecondParty = trim((string)($shipment['receiver_name'] ?? '')) !== '';
@@ -56,7 +57,7 @@ if ($isPdf) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <?= $documentStyles; ?>
   </head>
-  <body class="<?= $isPdf ? 'pdf-document' : 'print-preview-page'; ?>">
+  <body class="<?= $isPdf ? 'pdf-document print-preview-page' : 'print-preview-page'; ?>">
     <main class="main-panel reservation-page document-only-page">
       <div class="reservation-document">
         <header class="reservation-header">
@@ -111,7 +112,11 @@ if ($isPdf) {
           <aside class="reservation-panel barcode-panel">
             <h3>SCAN TO VIEW ONLINE</h3>
             <div class="barcode-box">
-              <div class="reservation-barcode" data-barcode-value="<?= htmlspecialchars($documentUrl); ?>" role="img" aria-label="QR code dokumen"></div>
+              <div class="reservation-barcode" data-barcode-value="<?= htmlspecialchars($documentUrl); ?>" role="img" aria-label="QR code dokumen">
+                <?php if ($isPdf): ?>
+                  <img src="<?= htmlspecialchars($qrImageUrl); ?>" alt="QR code dokumen" />
+                <?php endif; ?>
+              </div>
               <span class="barcode-value"><?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
             </div>
           </aside>
