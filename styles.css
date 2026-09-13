@@ -1744,6 +1744,260 @@ button {
   margin-top: 4px;
 }
 
+.print-preview-page {
+  background: #ffffff !important;
+}
+
+.print-preview-page .sidebar {
+  display: none;
+}
+
+.print-preview-page .dashboard-shell {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  min-height: 0;
+  background: #ffffff;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.print-preview-page .main-panel,
+.print-preview-page .reservation-page {
+  display: block;
+  width: 100%;
+  max-width: 210mm;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.print-preview-page .reservation-document {
+  width: 100%;
+  max-width: 190mm;
+  margin: 0 auto;
+  border: 1px solid #dfe7f1;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 10.5px;
+}
+
+.print-preview-page .reservation-header {
+  padding: 16px 18px 12px;
+}
+
+.print-preview-page .letter-rule {
+  margin-top: 14px;
+}
+
+.print-preview-page .letter-heading {
+  padding-top: 16px;
+}
+
+.print-preview-page .reservation-header h1 {
+  margin-bottom: 6px;
+  font-size: 16px;
+}
+
+.print-preview-page .reservation-meta {
+  gap: 6px 12px;
+  font-size: 8.5px;
+}
+
+.print-preview-page .letter-intro,
+.print-preview-page .letter-closing {
+  padding-right: 18px;
+  padding-left: 18px;
+  font-size: 10.5px;
+}
+
+.print-preview-page .letter-intro {
+  padding-top: 0;
+}
+
+.print-preview-page .letter-closing {
+  padding-bottom: 10px;
+}
+
+.print-preview-page .reservation-body {
+  display: grid;
+  gap: 12px;
+  padding: 14px 18px;
+}
+
+.print-preview-page .parties-body {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(100px, 145px) !important;
+}
+
+.print-preview-page .parties-body.parties-body-without-second-party {
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 145px) !important;
+}
+
+.print-preview-page .document-items {
+  grid-template-columns: 1fr !important;
+  padding-top: 0;
+}
+
+.print-preview-page .reservation-panel {
+  padding: 10px 10px 8px;
+  border-radius: 10px;
+}
+
+.print-preview-page .reservation-panel h3 {
+  margin-bottom: 10px;
+  font-size: 10px;
+}
+
+.print-preview-page .partner-column {
+  padding: 10px;
+}
+
+.print-preview-page .info-grid {
+  gap: 8px 10px;
+}
+
+.print-preview-page .info-item label {
+  font-size: 7px;
+  letter-spacing: 0.04em;
+}
+
+.print-preview-page .info-item span {
+  font-size: 8.5px;
+}
+
+.print-preview-page .items-table th,
+.print-preview-page .items-table td {
+  padding: 5px 4px;
+  font-size: 8.5px;
+}
+
+.print-preview-page .reservation-signature-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 18px 12px;
+}
+
+.print-preview-page .signature-panel {
+  min-height: 120px;
+}
+
+.print-preview-page .sign-box {
+  margin-top: 8px;
+  padding: 8px;
+}
+
+.print-preview-page .large-sign-box {
+  min-height: 70px;
+}
+
+.print-preview-page .sign-box img {
+  max-height: 64px;
+}
+
+.print-preview-page .signature-meta {
+  gap: 3px;
+  margin-top: 8px;
+  font-size: 8px;
+}
+
+.print-preview-page .barcode-panel {
+  padding: 12px 10px;
+  gap: 8px;
+}
+
+.print-preview-page .barcode-box {
+  min-height: 118px;
+  padding: 10px 8px 7px;
+}
+
+.print-preview-page .reservation-barcode,
+.print-preview-page .reservation-barcode img,
+.print-preview-page .reservation-barcode canvas {
+  width: 90px;
+  height: 90px;
+}
+
+.print-preview-page .barcode-value {
+  margin-top: 4px;
+  font-size: 7px;
+}
+
+.print-preview-page .reservation-actions {
+  padding: 16px 18px 24px;
+}
+
+@media (max-width: 560px) {
+  .print-preview-page .main-panel,
+  .print-preview-page .reservation-page {
+    max-width: none;
+    padding: 12px 10px 24px;
+  }
+
+  .print-preview-page .reservation-document {
+    max-width: none;
+    border-radius: 10px;
+    font-size: 0.88rem;
+  }
+
+  .print-preview-page .reservation-header {
+    padding: 20px 16px 14px;
+  }
+
+  .print-preview-page .letter-heading {
+    padding-top: 16px;
+  }
+
+  .print-preview-page .reservation-header h1 {
+    font-size: 1.05rem;
+    line-height: 1.3;
+  }
+
+  .print-preview-page .reservation-meta {
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+
+  .print-preview-page .letter-intro,
+  .print-preview-page .letter-closing {
+    padding-right: 16px;
+    padding-left: 16px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .print-preview-page .parties-body {
+    grid-template-columns: 1fr !important;
+    padding: 12px 14px;
+  }
+
+  .print-preview-page .document-items {
+    display: block;
+    padding: 0 14px 12px;
+  }
+
+  .print-preview-page .document-items .reservation-panel {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .print-preview-page .items-table {
+    min-width: 620px;
+  }
+
+  .print-preview-page .reservation-signature-row {
+    grid-template-columns: 1fr;
+    padding: 0 14px 14px;
+  }
+
+  .print-preview-page .reservation-actions {
+    flex-wrap: wrap;
+    padding: 12px 14px 20px;
+  }
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(180px, 1fr));

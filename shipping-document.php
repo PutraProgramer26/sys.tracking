@@ -55,7 +55,7 @@ if ($isPdf) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <?= $documentStyles; ?>
   </head>
-  <body class="<?= $isPdf ? 'pdf-document' : ''; ?>">
+  <body class="<?= $isPdf ? 'pdf-document' : 'print-preview-page'; ?>">
     <main class="main-panel reservation-page document-only-page">
       <div class="reservation-document">
         <header class="reservation-header">
