@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update->execute();
         $update->close();
         $connection->close();
-        header('Location: reservation.php?id=' . $shipmentId);
+        header('Location: shipping-document.php?id=' . $shipmentId);
         exit;
     }
 }
