@@ -90,6 +90,11 @@ body {
   box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
 }
 
+.material-brand-mark {
+  background: linear-gradient(135deg, #34d399, #059669);
+  box-shadow: 0 12px 24px rgba(5, 150, 105, 0.35);
+}
+
 .brand h1 {
   margin: 0;
   font-size: 1rem;

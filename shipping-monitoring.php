@@ -55,7 +55,7 @@ $connection = getDbConnection();
 $shipments = [];
 $baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
 
-$result = $connection->query("SELECT * FROM shipments ORDER BY id DESC");
+$result = $connection->query("SELECT * FROM shipments WHERE COALESCE(status, 'packing') <> 'delivered' ORDER BY id DESC");
 if ($result) {
     while ($shipment = $result->fetch_assoc()) {
         $shipmentId = (int)$shipment['id'];

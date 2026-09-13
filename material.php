@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 }
 
 $locations = [];
-$locationResult = $connection->query("SELECT sender_location AS location FROM shipments WHERE sender_location IS NOT NULL AND sender_location <> '' UNION SELECT receiver_location AS location FROM shipments WHERE receiver_location IS NOT NULL AND receiver_location <> '' ORDER BY location ASC");
+$locationResult = $connection->query("SELECT sender_location AS location FROM shipments WHERE status = 'delivered' AND sender_location IS NOT NULL AND sender_location <> '' UNION SELECT receiver_location AS location FROM shipments WHERE status = 'delivered' AND receiver_location IS NOT NULL AND receiver_location <> '' ORDER BY location ASC");
 if ($locationResult) {
     while ($location = $locationResult->fetch_assoc()) {
         $locations[] = $location['location'];
@@ -35,10 +35,10 @@ if ($locationResult) {
 
 $shipments = [];
 if ($selectedLocation !== '') {
-    $shipmentStatement = $connection->prepare('SELECT * FROM shipments WHERE sender_location = ? OR receiver_location = ? ORDER BY shipping_date DESC, id DESC');
+    $shipmentStatement = $connection->prepare("SELECT * FROM shipments WHERE status = 'delivered' AND (sender_location = ? OR receiver_location = ?) ORDER BY shipping_date DESC, id DESC");
     $shipmentStatement->bind_param('ss', $selectedLocation, $selectedLocation);
 } else {
-    $shipmentStatement = $connection->prepare('SELECT * FROM shipments ORDER BY shipping_date DESC, id DESC');
+    $shipmentStatement = $connection->prepare("SELECT * FROM shipments WHERE status = 'delivered' ORDER BY shipping_date DESC, id DESC");
 }
 $shipmentStatement->execute();
 $shipmentResult = $shipmentStatement->get_result();
@@ -86,7 +86,7 @@ function materialStatusLabel(string $status): string
     <div class="dashboard-shell">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand-mark">TM</div>
+          <div class="brand-mark material-brand-mark">M</div>
           <div><h1>Tracking Material</h1></div>
           <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Hide sidebar">⟨</button>
         </div>

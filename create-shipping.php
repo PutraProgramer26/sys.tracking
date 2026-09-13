@@ -103,7 +103,6 @@ $senderFields = [
             <p class="eyebrow">Shipment</p>
             <h2><?= $pageTitle; ?></h2>
           </div>
-          <button class="primary-btn" type="submit" form="shipping-form">Save Shipping</button>
         </header>
 
         <?php if (isset($_GET['error']) && $_GET['error'] === 'signature_required'): ?>
@@ -224,6 +223,10 @@ $senderFields = [
               <input type="hidden" name="sender_signature" id="sender_signature" value="<?= htmlspecialchars($formShipment['sender_signature'] ?? ''); ?>" />
             </div>
           </section>
+
+          <div class="form-actions">
+            <button class="primary-btn" type="submit">Save Shipping</button>
+          </div>
         </form>
       </main>
     </div>
