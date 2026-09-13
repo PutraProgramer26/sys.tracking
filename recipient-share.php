@@ -15,6 +15,15 @@ if (!$shipment) {
     exit('Link penerima tidak valid atau sudah tidak tersedia.');
 }
 
+  $itemsStatement = $connection->prepare('SELECT name, qty, unit, category, category_alt, note FROM shipment_items WHERE shipment_id = ? ORDER BY id ASC');
+  $shipmentId = (int)$shipment['id'];
+  $itemsStatement->bind_param('i', $shipmentId);
+  $itemsStatement->execute();
+  $items = $itemsStatement->get_result()->fetch_all(MYSQLI_ASSOC);
+  $itemsStatement->close();
+  $documentUrl = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/shipping-document.php?id=' . $shipmentId;
+  $qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=90x90&format=png&data=' . rawurlencode($documentUrl);
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $receiverName = trim((string)($_POST['receiver_name'] ?? ''));
@@ -28,7 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $update = $connection->prepare('UPDATE shipments SET status = ?, receiver_name = ?, receiver_uid = ?, receiver_position = ?, receiver_location = ?, receiver_signature = ? WHERE id = ? AND share_token = ?');
         $status = 'delivered';
-        $shipmentId = (int)$shipment['id'];
         $update->bind_param('ssssssis', $status, $receiverName, $receiverUid, $receiverPosition, $receiverLocation, $receiverSignature, $shipmentId, $token);
         $update->execute();
         $update->close();
@@ -136,6 +144,167 @@ $connection->close();
       border-radius: 0 10px 10px 0;
       background: #eff6ff;
       color: #334155;
+    }
+
+    .shared-certificate {
+      margin: 24px 42px 0;
+      padding: 24px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #1e293b;
+    }
+
+    .shared-certificate-header {
+      padding-bottom: 14px;
+      border-bottom: 2px solid #0f172a;
+      text-align: center;
+    }
+
+    .shared-certificate-header strong {
+      display: block;
+      color: #0f172a;
+      font-size: 0.66rem;
+      letter-spacing: 0.1em;
+    }
+
+    .shared-certificate-header h2 {
+      margin: 14px 0 6px;
+      color: #0f172a;
+      font-size: 1.1rem;
+    }
+
+    .shared-certificate-meta {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      color: #475569;
+      font-size: 0.68rem;
+      font-weight: 600;
+    }
+
+    .shared-certificate-intro,
+    .shared-certificate-closing {
+      margin: 14px 0;
+      color: #334155;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
+    .shared-certificate-parties {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px;
+      gap: 8px;
+    }
+
+    .shared-certificate-panel {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+
+    .shared-certificate-panel h3 {
+      margin: 0 0 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #cbd5e1;
+      color: #0f172a;
+      font-size: 0.66rem;
+    }
+
+    .shared-certificate-info {
+      display: grid;
+      gap: 6px;
+    }
+
+    .shared-certificate-info span {
+      display: block;
+      overflow-wrap: anywhere;
+      color: #475569;
+      font-size: 0.62rem;
+    }
+
+    .shared-certificate-qr {
+      text-align: center;
+    }
+
+    .shared-certificate-qr img {
+      display: block;
+      width: 90px;
+      max-width: 100%;
+      height: 90px;
+      margin: 0 auto 4px;
+    }
+
+    .shared-certificate-qr small {
+      color: #64748b;
+      font-size: 0.5rem;
+      overflow-wrap: anywhere;
+    }
+
+    .shared-certificate-items {
+      margin-top: 10px;
+      overflow-x: auto;
+    }
+
+    .shared-certificate-items table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 560px;
+      font-size: 0.62rem;
+    }
+
+    .shared-certificate-items th,
+    .shared-certificate-items td {
+      padding: 6px 5px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .shared-certificate-items th {
+      color: #64748b;
+      font-size: 0.52rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 620px) {
+      .shared-certificate {
+        margin: 18px 18px 0;
+        padding: 12px;
+      }
+
+      .shared-certificate-parties {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 76px;
+        gap: 5px;
+      }
+
+      .shared-certificate-panel {
+        padding: 6px 5px;
+      }
+
+      .shared-certificate-panel h3 {
+        font-size: 0.48rem;
+      }
+
+      .shared-certificate-info {
+        gap: 4px;
+      }
+
+      .shared-certificate-info span {
+        font-size: 0.47rem;
+      }
+
+      .shared-certificate-qr img {
+        width: 62px;
+        height: 62px;
+      }
+
+      .shared-certificate-qr small {
+        font-size: 0.4rem;
+      }
     }
 
     .recipient-page .form-message {
@@ -304,6 +473,66 @@ $connection->close();
       </header>
       <div class="letter-intro"><p>Lengkapi data penerima dan tanda tangan elektronik untuk menyelesaikan Goods Handover Certificate.</p></div>
       <?php if ($error !== ''): ?><div class="form-message error"><?= htmlspecialchars($error); ?></div><?php endif; ?>
+      <section class="shared-certificate" aria-label="Goods Handover Certificate">
+        <header class="shared-certificate-header">
+          <strong>DOKUMEN INTERNAL</strong>
+          <h2>Goods Handover Certificate</h2>
+          <div class="shared-certificate-meta">
+            <span>Document No: <?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></span>
+            <span>Date: <?= htmlspecialchars($shipment['shipping_date'] ?? '-'); ?></span>
+            <span>Status: <?= htmlspecialchars(ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'))); ?></span>
+          </div>
+        </header>
+        <p class="shared-certificate-intro">Dengan hormat, berikut kami sampaikan data reservasi dan pengiriman barang untuk dapat digunakan sebagaimana mestinya.</p>
+        <div class="shared-certificate-parties">
+          <section class="shared-certificate-panel">
+            <h3>I. First Party</h3>
+            <div class="shared-certificate-info">
+              <span>Nama: <?= htmlspecialchars($shipment['sender_name'] ?? '-'); ?></span>
+              <span>UID: <?= htmlspecialchars($shipment['sender_uid'] ?? '-'); ?></span>
+              <span>Posisi: <?= htmlspecialchars($shipment['sender_position'] ?? '-'); ?></span>
+              <span>Lokasi: <?= htmlspecialchars($shipment['sender_location'] ?? '-'); ?></span>
+            </div>
+          </section>
+          <section class="shared-certificate-panel">
+            <h3>II. Second Party</h3>
+            <div class="shared-certificate-info">
+              <span>Nama: <?= htmlspecialchars($shipment['receiver_name'] ?? '-'); ?></span>
+              <span>UID: <?= htmlspecialchars($shipment['receiver_uid'] ?? '-'); ?></span>
+              <span>Posisi: <?= htmlspecialchars($shipment['receiver_position'] ?? '-'); ?></span>
+              <span>Lokasi: <?= htmlspecialchars($shipment['receiver_location'] ?? '-'); ?></span>
+            </div>
+          </section>
+          <aside class="shared-certificate-panel shared-certificate-qr">
+            <h3>SCAN TO VIEW ONLINE</h3>
+            <img src="<?= htmlspecialchars($qrImageUrl); ?>" alt="QR code dokumen" />
+            <small><?= htmlspecialchars($shipment['reservation_code'] ?? '-'); ?></small>
+          </aside>
+        </div>
+        <div class="shared-certificate-items">
+          <h3>III. Rincian Barang</h3>
+          <table>
+            <thead><tr><th>Nama Barang</th><th>Qty</th><th>Satuan</th><th>Item Type</th><th>Kategori</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <?php if (empty($items)): ?>
+                <tr><td colspan="6">Tidak ada data barang.</td></tr>
+              <?php else: ?>
+                <?php foreach ($items as $item): ?>
+                  <tr>
+                    <td><?= htmlspecialchars($item['name'] ?? '-'); ?></td>
+                    <td><?= htmlspecialchars((string)($item['qty'] ?? 0)); ?></td>
+                    <td><?= htmlspecialchars($item['unit'] ?? '-'); ?></td>
+                    <td><?= htmlspecialchars($item['category'] ?? '-'); ?></td>
+                    <td><?= htmlspecialchars($item['category_alt'] ?? '-'); ?></td>
+                    <td><?= htmlspecialchars($item['note'] ?? '-'); ?></td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+        <p class="shared-certificate-closing">Demikian surat reservasi dan pengiriman barang ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
+      </section>
       <form method="post" class="recipient-form">
         <input type="hidden" name="token" value="<?= htmlspecialchars($token); ?>" />
         <section class="recipient-section">
