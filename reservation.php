@@ -203,7 +203,6 @@ $isDelivered = ($shipment['status'] ?? '') === 'delivered';
           <div class="reservation-actions">
             <button class="primary-btn" type="button" onclick="window.history.back();">Kembali</button>
             <button class="secondary-btn" type="button" onclick="window.print()">Print / Cetak</button>
-            <a class="secondary-btn btn-link" href="shipping-document.php?id=<?= (int)$shipment['id']; ?>&format=pdf&download=1">Download</a>
           </div>
         </div>
       </main>
