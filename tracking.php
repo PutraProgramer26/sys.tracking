@@ -190,7 +190,7 @@ $connection->close();
                     </td>
                     <td>
                       <?php if (isAdmin()): ?>
-                        <a class="inline-link" href="reservation.php?id=<?= (int)($shipment['id'] ?? 0); ?>">Lihat Surat</a>
+                        <a class="inline-link" href="shipping-document.php?id=<?= (int)($shipment['id'] ?? 0); ?>">Lihat Surat</a>
                       <?php else: ?>
                         <span class="status-pill <?= htmlspecialchars($shipment['status'] ?? 'sent'); ?>">Terpantau</span>
                       <?php endif; ?>

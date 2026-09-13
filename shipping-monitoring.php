@@ -202,7 +202,7 @@ $connection->close();
                             <?php endforeach; ?>
                           </select>
                           <button type="submit" class="secondary-btn small-btn status-update-btn">Update</button>
-                          <a class="inline-link view-doc-btn" href="reservation.php?id=<?= (int)($shipment['id'] ?? 0); ?>">View Surat</a>
+                          <a class="inline-link view-doc-btn" href="shipping-document.php?id=<?= (int)($shipment['id'] ?? 0); ?>">View Surat</a>
                           <?php if (!empty($shipment['share_token'])): ?>
                             <?php $shareUrl = $baseUrl . '/recipient-share.php?token=' . urlencode($shipment['share_token']); ?>
                             <a class="inline-link recipient-data-link" href="<?= htmlspecialchars($recipientUrl); ?>" hidden>Isi Second Party &amp; E-Sign</a>
