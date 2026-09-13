@@ -38,7 +38,7 @@ $status = ucfirst(str_replace('_', ' ', $shipment['status'] ?? 'packing'));
 $isPdf = isset($_GET['format']) && $_GET['format'] === 'pdf';
 $documentStyles = $isPdf && file_exists(__DIR__ . '/styles.css')
   ? '<style>' . file_get_contents(__DIR__ . '/styles.css') . '</style>'
-  : '<link rel="stylesheet" href="styles.css" />';
+  : '<link rel="stylesheet" href="styles.css?v=4" />';
 if ($isPdf) {
   require_once __DIR__ . '/vendor/autoload.php';
   ob_start();
