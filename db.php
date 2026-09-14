@@ -53,28 +53,30 @@ function ensureDatabaseSchema(mysqli $connection): void
     $connection->query("CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(100) NOT NULL UNIQUE,
+        email VARCHAR(255) NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         full_name VARCHAR(255) NULL,
         role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB");
+    ensureColumnExists($connection, 'users', 'email', 'VARCHAR(255) NULL UNIQUE');
     ensureColumnExists($connection, 'users', 'role', "ENUM('admin', 'user') NOT NULL DEFAULT 'user'");
 
     $seedUsers = [
-        ['admin', 'admin123', 'Administrator', 'admin'],
-        ['user', 'user123', 'Default User', 'user'],
+        ['admin', 'admin123', 'admin@example.com', 'Administrator', 'admin'],
+        ['user', 'user123', 'user@example.com', 'Default User', 'user'],
     ];
 
-    foreach ($seedUsers as [$username, $plainPassword, $fullName, $role]) {
+    foreach ($seedUsers as [$username, $plainPassword, $email, $fullName, $role]) {
         $result = $connection->query("SELECT id FROM users WHERE username = '{$username}' LIMIT 1");
         if ($result && $result->num_rows > 0) {
-            $connection->query("UPDATE users SET role = '{$role}', full_name = '{$fullName}' WHERE username = '{$username}'");
+            $connection->query("UPDATE users SET role = '{$role}', email = '{$email}', full_name = '{$fullName}' WHERE username = '{$username}'");
             continue;
         }
 
         $hash = password_hash($plainPassword, PASSWORD_DEFAULT);
-        $stmt = $connection->prepare("INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param('ssss', $username, $hash, $fullName, $role);
+        $stmt = $connection->prepare("INSERT INTO users (username, email, password, full_name, role) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param('sssss', $username, $email, $hash, $fullName, $role);
         $stmt->execute();
         $stmt->close();
     }

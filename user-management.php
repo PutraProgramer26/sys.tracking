@@ -11,7 +11,7 @@ $editingUser = null;
 
 if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
     $editId = (int)$_GET['edit'];
-    $stmt = $connection->prepare('SELECT id, username, full_name, role FROM users WHERE id = ? LIMIT 1');
+    $stmt = $connection->prepare('SELECT id, username, email, full_name, role FROM users WHERE id = ? LIMIT 1');
     $stmt->bind_param('i', $editId);
     $stmt->execute();
     $editingUser = $stmt->get_result()->fetch_assoc();
@@ -24,25 +24,28 @@ try {
 
         if ($action === 'create') {
             $username = trim((string)($_POST['username'] ?? ''));
+            $email = trim((string)($_POST['email'] ?? ''));
             $fullName = trim((string)($_POST['full_name'] ?? ''));
             $password = (string)($_POST['password'] ?? '');
             $role = in_array($_POST['role'] ?? '', ['admin', 'user'], true) ? $_POST['role'] : 'user';
 
-            if ($username === '' || $password === '') {
-                $errorMessage = 'Username dan password wajib diisi.';
+            if ($username === '' || $email === '' || $password === '') {
+              $errorMessage = 'Username, email, dan password wajib diisi.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+              $errorMessage = 'Format email tidak valid.';
             } elseif (strlen($password) < 6) {
                 $errorMessage = 'Password minimal 6 karakter.';
             } else {
-                $existing = $connection->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
-                $existing->bind_param('s', $username);
+                $existing = $connection->prepare('SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1');
+                $existing->bind_param('ss', $username, $email);
                 $existing->execute();
                 $existingResult = $existing->get_result();
                 if ($existingResult->num_rows > 0) {
-                    $errorMessage = 'Username sudah digunakan.';
+                    $errorMessage = 'Username atau email sudah digunakan.';
                 } else {
                     $hash = password_hash($password, PASSWORD_DEFAULT);
-                    $stmt = $connection->prepare('INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)');
-                    $stmt->bind_param('ssss', $username, $hash, $fullName, $role);
+                    $stmt = $connection->prepare('INSERT INTO users (username, email, password, full_name, role) VALUES (?, ?, ?, ?, ?)');
+                    $stmt->bind_param('sssss', $username, $email, $hash, $fullName, $role);
                     if ($stmt->execute()) {
                         $successMessage = 'User baru berhasil dibuat.';
                     } else {
@@ -56,12 +59,15 @@ try {
 
         if ($action === 'update') {
             $id = (int)($_POST['id'] ?? 0);
+            $email = trim((string)($_POST['email'] ?? ''));
             $fullName = trim((string)($_POST['full_name'] ?? ''));
             $role = in_array($_POST['role'] ?? '', ['admin', 'user'], true) ? $_POST['role'] : 'user';
             $password = (string)($_POST['password'] ?? '');
 
             if ($id <= 0) {
                 $errorMessage = 'Data user tidak valid.';
+            } elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+              $errorMessage = 'Format email tidak valid.';
             } elseif ($id === (int)$_SESSION['user_id'] && $role !== 'admin') {
                 $errorMessage = 'Anda tidak dapat menurunkan role akun Anda sendiri.';
             } else {
@@ -70,8 +76,8 @@ try {
                         $errorMessage = 'Password baru minimal 6 karakter.';
                     } else {
                         $hash = password_hash($password, PASSWORD_DEFAULT);
-                        $stmt = $connection->prepare('UPDATE users SET full_name = ?, role = ?, password = ? WHERE id = ?');
-                        $stmt->bind_param('sssi', $fullName, $role, $hash, $id);
+                        $stmt = $connection->prepare('UPDATE users SET email = ?, full_name = ?, role = ?, password = ? WHERE id = ?');
+                        $stmt->bind_param('ssssi', $email, $fullName, $role, $hash, $id);
                         if ($stmt->execute()) {
                             $successMessage = 'Data user berhasil diperbarui.';
                         } else {
@@ -80,8 +86,8 @@ try {
                         $stmt->close();
                     }
                 } else {
-                    $stmt = $connection->prepare('UPDATE users SET full_name = ?, role = ? WHERE id = ?');
-                    $stmt->bind_param('ssi', $fullName, $role, $id);
+                    $stmt = $connection->prepare('UPDATE users SET email = ?, full_name = ?, role = ? WHERE id = ?');
+                    $stmt->bind_param('sssi', $email, $fullName, $role, $id);
                     if ($stmt->execute()) {
                         $successMessage = 'Data user berhasil diperbarui.';
                     } else {
@@ -139,7 +145,7 @@ try {
         }
     }
 
-    $usersResult = $connection->query('SELECT id, username, full_name, role FROM users ORDER BY role ASC, username ASC');
+    $usersResult = $connection->query('SELECT id, username, email, full_name, role FROM users ORDER BY role ASC, username ASC');
     $users = $usersResult ? $usersResult->fetch_all(MYSQLI_ASSOC) : [];
 } finally {
     $connection->close();
@@ -240,6 +246,11 @@ try {
                 </div>
 
                 <div class="field-group">
+                  <label for="edit_email">Email</label>
+                  <input id="edit_email" name="email" type="email" value="<?= htmlspecialchars($editingUser['email'] ?? ''); ?>" required />
+                </div>
+
+                <div class="field-group">
                   <label for="edit_role">Role</label>
                   <select id="edit_role" name="role">
                     <option value="user" <?= (($editingUser['role'] ?? 'user') === 'user') ? 'selected' : ''; ?>>user</option>
@@ -265,6 +276,11 @@ try {
                 <div class="field-group">
                   <label for="username">Username</label>
                   <input id="username" name="username" type="text" required />
+                </div>
+
+                <div class="field-group">
+                  <label for="email">Email</label>
+                  <input id="email" name="email" type="email" required />
                 </div>
 
                 <div class="field-group">
@@ -294,11 +310,13 @@ try {
 
           <section class="panel">
             <h3>Daftar User</h3>
+            <p style="color:#64748b; font-size:0.85rem;">Password disimpan dalam bentuk hash dan tidak dapat dilihat. Gunakan Edit untuk membuat password baru.</p>
             <div style="overflow-x:auto;">
               <table class="user-table">
                 <thead>
                   <tr>
                     <th>Username</th>
+                    <th>Email</th>
                     <th>Nama</th>
                     <th>Role</th>
                     <th>Aksi</th>
@@ -313,6 +331,7 @@ try {
                     <?php foreach ($users as $user): ?>
                       <tr>
                         <td><?= htmlspecialchars($user['username']); ?></td>
+                        <td><?= htmlspecialchars($user['email'] ?? '-'); ?></td>
                         <td><?= htmlspecialchars($user['full_name'] ?? '-'); ?></td>
                         <td><span class="badge <?= htmlspecialchars($user['role'] ?? 'user'); ?>"><?= htmlspecialchars($user['role'] ?? 'user'); ?></span></td>
                         <td>

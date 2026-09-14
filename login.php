@@ -15,8 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($username !== '' && $password !== '') {
         try {
             $connection = getDbConnection();
-            $stmt = $connection->prepare('SELECT id, username, password, role FROM users WHERE username = ? LIMIT 1');
-            $stmt->bind_param('s', $username);
+            $stmt = $connection->prepare('SELECT id, username, password, role FROM users WHERE username = ? OR email = ? LIMIT 1');
+            $stmt->bind_param('ss', $username, $username);
             $stmt->execute();
             $result = $stmt->get_result();
             $user = $result->fetch_assoc();
@@ -154,17 +154,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <form method="post" action="login.php">
         <div class="form-group">
-          <label for="username">Username</label>
-          <input id="username" name="username" type="text" placeholder="Masukkan username" autocomplete="username" />
+          <label for="username">Email atau Username</label>
+          <input id="username" name="username" type="text" placeholder="Masukkan email atau username" autocomplete="username" required />
         </div>
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input id="password" name="password" type="password" placeholder="Masukkan password" autocomplete="current-password" />
+          <input id="password" name="password" type="password" placeholder="Masukkan password" autocomplete="current-password" required />
         </div>
 
         <button type="submit" class="login-btn">Login</button>
       </form>
+
+      <p class="hint">Belum punya akun? <a href="register.php" style="color:#7dd3fc;">Buat akun</a></p>
 
     </div>
   </body>
