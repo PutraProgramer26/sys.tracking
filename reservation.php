@@ -1,7 +1,6 @@
 <?php
 require __DIR__ . '/auth.php';
 requireLogin();
-requireRole('admin');
 require __DIR__ . '/db.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -63,10 +62,10 @@ $isDelivered = ($shipment['status'] ?? '') === 'delivered';
         <nav class="nav-menu">
           <a class="nav-item" href="index.php"><span>📊</span><span class="nav-label">Dashboard</span></a>
           <a class="nav-item" href="material.php"><span>📦</span><span class="nav-label">Material</span></a>
-          <a class="nav-item" href="create-shipping.php"><span>🚚</span><span class="nav-label">Create Shipping</span></a>
+          <?php if (isAdmin()): ?><a class="nav-item" href="create-shipping.php"><span>🚚</span><span class="nav-label">Create Shipping</span></a><?php endif; ?>
           <a class="nav-item" href="tracking.php"><span>📍</span><span class="nav-label">Tracking</span></a>
           <a class="nav-item" href="shipping-monitoring.php"><span>📦</span><span class="nav-label">Shipping Monitoring</span></a>
-          <a class="nav-item" href="user-management.php"><span>⚙️</span><span class="nav-label">Setting</span></a>
+          <?php if (isAdmin()): ?><a class="nav-item" href="user-management.php"><span>⚙️</span><span class="nav-label">Setting</span></a><?php endif; ?>
         </nav>
 
         <div class="sidebar-footer">

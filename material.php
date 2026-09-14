@@ -1,13 +1,12 @@
 <?php
 require __DIR__ . '/auth.php';
 requireLogin();
-requireRole('admin');
 require __DIR__ . '/db.php';
 
 $selectedLocation = trim((string)($_GET['location'] ?? $_POST['location'] ?? ''));
 $connection = getDbConnection();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete' && isAdmin()) {
   $deleteId = (int)($_POST['shipment_id'] ?? 0);
   if ($deleteId > 0) {
     $deleteStatement = $connection->prepare('DELETE FROM shipments WHERE id = ?');
@@ -93,10 +92,10 @@ function materialStatusLabel(string $status): string
         <nav class="nav-menu">
           <a class="nav-item" href="index.php"><span>📊</span><span class="nav-label">Dashboard</span></a>
           <a class="nav-item active" href="material.php"><span>📦</span><span class="nav-label">Material</span></a>
-          <a class="nav-item" href="create-shipping.php"><span>🚚</span><span class="nav-label">Create Shipping</span></a>
+          <?php if (isAdmin()): ?><a class="nav-item" href="create-shipping.php"><span>🚚</span><span class="nav-label">Create Shipping</span></a><?php endif; ?>
           <a class="nav-item" href="tracking.php"><span>📍</span><span class="nav-label">Tracking</span></a>
           <a class="nav-item" href="shipping-monitoring.php"><span>📦</span><span class="nav-label">Shipping Monitoring</span></a>
-          <a class="nav-item" href="user-management.php"><span>⚙️</span><span class="nav-label">Setting</span></a>
+          <?php if (isAdmin()): ?><a class="nav-item" href="user-management.php"><span>⚙️</span><span class="nav-label">Setting</span></a><?php endif; ?>
         </nav>
         <div class="sidebar-footer">
           <a class="sidebar-logout" href="logout.php"><span>🚪</span><span class="nav-label">Logout</span></a>
@@ -178,15 +177,17 @@ function materialStatusLabel(string $status): string
                   </div>
                   <div class="material-actions">
                     <a class="inline-link material-document-link" href="reservation.php?id=<?= (int)$shipment['id']; ?>">Lihat dokumen</a>
-                    <a class="material-edit-link" href="create-shipping.php?edit=<?= (int)$shipment['id']; ?>">Edit</a>
-                    <form method="post" class="material-delete-form" onsubmit="return confirm('Hapus history pengiriman ini?');">
-                      <input type="hidden" name="action" value="delete" />
-                      <input type="hidden" name="shipment_id" value="<?= (int)$shipment['id']; ?>" />
-                      <?php if ($selectedLocation !== ''): ?>
-                        <input type="hidden" name="location" value="<?= htmlspecialchars($selectedLocation); ?>" />
-                      <?php endif; ?>
-                      <button type="submit" class="material-delete-link">Delete</button>
-                    </form>
+                    <?php if (isAdmin()): ?>
+                      <a class="material-edit-link" href="create-shipping.php?edit=<?= (int)$shipment['id']; ?>">Edit</a>
+                      <form method="post" class="material-delete-form" onsubmit="return confirm('Hapus history pengiriman ini?');">
+                        <input type="hidden" name="action" value="delete" />
+                        <input type="hidden" name="shipment_id" value="<?= (int)$shipment['id']; ?>" />
+                        <?php if ($selectedLocation !== ''): ?>
+                          <input type="hidden" name="location" value="<?= htmlspecialchars($selectedLocation); ?>" />
+                        <?php endif; ?>
+                        <button type="submit" class="material-delete-link">Delete</button>
+                      </form>
+                    <?php endif; ?>
                   </div>
                 </article>
               <?php endforeach; ?>

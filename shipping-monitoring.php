@@ -1,7 +1,6 @@
 <?php
 require __DIR__ . '/auth.php';
 requireLogin();
-requireRole('admin');
 require __DIR__ . '/db.php';
 
 $statusOptions = [
@@ -11,7 +10,7 @@ $statusOptions = [
     'delivered' => 'Delivered'
 ];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete' && isAdmin()) {
   $shipmentId = (int)($_POST['shipment_id'] ?? 0);
 
   if ($shipmentId > 0) {
@@ -27,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
   exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status']) && isAdmin()) {
     $shipmentId = (int) ($_POST['shipment_id'] ?? -1);
     $newStatus = $_POST['status'] ?? 'packing';
 
@@ -107,10 +106,12 @@ $connection->close();
             <span>📦</span>
             <span class="nav-label">Material</span>
           </a>
-          <a class="nav-item" href="create-shipping.php">
-            <span>🚚</span>
-            <span class="nav-label">Create Shipping</span>
-          </a>
+          <?php if (isAdmin()): ?>
+            <a class="nav-item" href="create-shipping.php">
+              <span>🚚</span>
+              <span class="nav-label">Create Shipping</span>
+            </a>
+          <?php endif; ?>
           <a class="nav-item" href="tracking.php">
             <span>📍</span>
             <span class="nav-label">Tracking</span>
@@ -119,10 +120,12 @@ $connection->close();
             <span>📦</span>
             <span class="nav-label">Shipping Monitoring</span>
           </a>
-          <a class="nav-item" href="user-management.php">
-            <span>⚙️</span>
-            <span class="nav-label">Setting</span>
-          </a>
+          <?php if (isAdmin()): ?>
+            <a class="nav-item" href="user-management.php">
+              <span>⚙️</span>
+              <span class="nav-label">Setting</span>
+            </a>
+          <?php endif; ?>
         </nav>
 
         <div class="sidebar-footer">
@@ -192,17 +195,18 @@ $connection->close();
                     <td>
                       <?php $shipmentId = (int)($shipment['id'] ?? $index); ?>
                       <?php $recipientUrl = !empty($shipment['share_token']) ? 'recipient-share.php?token=' . urlencode($shipment['share_token']) : ''; ?>
-                      <form method="post" class="status-form delivery-form">
-                        <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)$shipmentId); ?>" />
-                        <input type="hidden" name="update_status" value="1" />
-                        <div class="status-controls">
-                          <select name="status" class="status-select">
-                            <?php foreach ($statusOptions as $value => $label): ?>
-                              <option value="<?= $value; ?>" <?= (($shipment['status'] ?? 'packing') === $value) ? 'selected' : ''; ?>><?= $label; ?></option>
-                            <?php endforeach; ?>
-                          </select>
-                          <button type="submit" class="secondary-btn small-btn status-update-btn">Update</button>
-                          <a class="inline-link view-doc-btn" href="shipping-document.php?id=<?= (int)($shipment['id'] ?? 0); ?>">View Surat</a>
+                      <?php if (isAdmin()): ?>
+                        <form method="post" class="status-form delivery-form">
+                          <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)$shipmentId); ?>" />
+                          <input type="hidden" name="update_status" value="1" />
+                          <div class="status-controls">
+                            <select name="status" class="status-select">
+                              <?php foreach ($statusOptions as $value => $label): ?>
+                                <option value="<?= $value; ?>" <?= (($shipment['status'] ?? 'packing') === $value) ? 'selected' : ''; ?>><?= $label; ?></option>
+                              <?php endforeach; ?>
+                            </select>
+                            <button type="submit" class="secondary-btn small-btn status-update-btn">Update</button>
+                            <a class="inline-link view-doc-btn" href="shipping-document.php?id=<?= (int)($shipment['id'] ?? 0); ?>">View Surat</a>
                           <?php if (!empty($shipment['share_token'])): ?>
                             <?php $shareUrl = $baseUrl . '/recipient-share.php?token=' . urlencode($shipment['share_token']); ?>
                             <a class="inline-link recipient-data-link" href="<?= htmlspecialchars($recipientUrl); ?>" hidden>Isi Second Party &amp; E-Sign</a>
@@ -216,13 +220,16 @@ $connection->close();
                               <a class="share-link-open" href="<?= htmlspecialchars($shareUrl); ?>" target="_blank" rel="noopener">Buka halaman penerima</a>
                             </div>
                           <?php endif; ?>
-                        </div>
-                      </form>
-                      <form method="post" class="monitoring-delete-form" onsubmit="return confirm('Hapus shipment ini beserta seluruh detail barangnya?');">
-                        <input type="hidden" name="action" value="delete" />
-                        <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)$shipmentId); ?>" />
-                        <button type="submit" class="delete-shipment-btn">Delete</button>
-                      </form>
+                          </div>
+                        </form>
+                        <form method="post" class="monitoring-delete-form" onsubmit="return confirm('Hapus shipment ini beserta seluruh detail barangnya?');">
+                          <input type="hidden" name="action" value="delete" />
+                          <input type="hidden" name="shipment_id" value="<?= htmlspecialchars((string)$shipmentId); ?>" />
+                          <button type="submit" class="delete-shipment-btn">Delete</button>
+                        </form>
+                      <?php else: ?>
+                        <a class="inline-link view-doc-btn" href="shipping-document.php?id=<?= (int)($shipment['id'] ?? 0); ?>">View Goods Handover Certificate</a>
+                      <?php endif; ?>
                     </td>
                   </tr>
                 <?php endforeach; ?>
