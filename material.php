@@ -4,6 +4,7 @@ requireLogin();
 require __DIR__ . '/db.php';
 
 $selectedLocation = trim((string)($_GET['location'] ?? $_POST['location'] ?? ''));
+$sharedShipmentId = (int)($_GET['share_id'] ?? 0);
 $connection = getDbConnection();
 $baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
 
@@ -37,7 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'regen
 
   $redirectUrl = 'material.php';
   if ($selectedLocation !== '') {
-    $redirectUrl .= '?location=' . rawurlencode($selectedLocation);
+    $redirectUrl .= '?location=' . rawurlencode($selectedLocation) . '&share_id=' . $shareId;
+  } else {
+    $redirectUrl .= '?share_id=' . $shareId;
   }
   $connection->close();
   header('Location: ' . $redirectUrl);
@@ -215,7 +218,7 @@ function materialStatusLabel(string $status): string
                         <?php endif; ?>
                         <button type="submit" class="material-delete-link">Delete</button>
                       </form>
-                      <?php if (!empty($shipment['share_token'])): ?>
+                      <?php if ($sharedShipmentId === (int)$shipment['id'] && !empty($shipment['share_token'])): ?>
                         <?php $shareUrl = $baseUrl . '/recipient-share.php?token=' . urlencode($shipment['share_token']); ?>
                         <div class="material-share-link" style="flex-basis:100%; margin-top:8px;">
                           <label style="display:block; margin-bottom:4px; font-size:0.75rem; color:#64748b;">Link Second Party (sekali pakai)</label>
