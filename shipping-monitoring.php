@@ -207,7 +207,7 @@ $connection->close();
                             </select>
                             <button type="submit" class="secondary-btn small-btn status-update-btn">Update</button>
                             <a class="inline-link view-doc-btn" href="shipping-document.php?id=<?= (int)($shipment['id'] ?? 0); ?>">View Surat</a>
-                          <?php if (!empty($shipment['share_token'])): ?>
+                          <?php if (!empty($shipment['share_token']) && empty($shipment['share_used_at'])): ?>
                             <?php $shareUrl = $baseUrl . '/recipient-share.php?token=' . urlencode($shipment['share_token']); ?>
                             <a class="inline-link recipient-data-link" href="<?= htmlspecialchars($recipientUrl); ?>" hidden>Isi Second Party &amp; E-Sign</a>
                             <button type="button" class="inline-link view-doc-btn share-link-btn" data-share-url="<?= htmlspecialchars($shareUrl); ?>">Share link</button>
@@ -219,6 +219,8 @@ $connection->close();
                               </div>
                               <a class="share-link-open" href="<?= htmlspecialchars($shareUrl); ?>" target="_blank" rel="noopener">Buka halaman penerima</a>
                             </div>
+                          <?php elseif (!empty($shipment['share_used_at'])): ?>
+                            <span class="inline-link" style="opacity:0.65;">Link sudah digunakan, share ulang di Material</span>
                           <?php endif; ?>
                           </div>
                         </form>

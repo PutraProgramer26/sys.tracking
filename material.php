@@ -5,6 +5,7 @@ require __DIR__ . '/db.php';
 
 $selectedLocation = trim((string)($_GET['location'] ?? $_POST['location'] ?? ''));
 $connection = getDbConnection();
+$baseUrl = 'http://' . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete' && isAdmin()) {
   $deleteId = (int)($_POST['shipment_id'] ?? 0);
@@ -13,6 +14,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
     $deleteStatement->bind_param('i', $deleteId);
     $deleteStatement->execute();
     $deleteStatement->close();
+  }
+
+  $redirectUrl = 'material.php';
+  if ($selectedLocation !== '') {
+    $redirectUrl .= '?location=' . rawurlencode($selectedLocation);
+  }
+  $connection->close();
+  header('Location: ' . $redirectUrl);
+  exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'regenerate_share' && isAdmin()) {
+  $shareId = (int)($_POST['shipment_id'] ?? 0);
+  if ($shareId > 0) {
+    $newToken = bin2hex(random_bytes(32));
+    $shareStatement = $connection->prepare('UPDATE shipments SET share_token = ?, share_used_at = NULL WHERE id = ?');
+    $shareStatement->bind_param('si', $newToken, $shareId);
+    $shareStatement->execute();
+    $shareStatement->close();
   }
 
   $redirectUrl = 'material.php';
@@ -179,6 +199,14 @@ function materialStatusLabel(string $status): string
                     <a class="inline-link material-document-link" href="reservation.php?id=<?= (int)$shipment['id']; ?>">Lihat dokumen</a>
                     <?php if (isAdmin()): ?>
                       <a class="material-edit-link" href="create-shipping.php?edit=<?= (int)$shipment['id']; ?>">Edit</a>
+                      <form method="post" class="material-share-form" onsubmit="return confirm('Buat link baru untuk Second Party? Link lama akan dinonaktifkan.');">
+                        <input type="hidden" name="action" value="regenerate_share" />
+                        <input type="hidden" name="shipment_id" value="<?= (int)$shipment['id']; ?>" />
+                        <?php if ($selectedLocation !== ''): ?>
+                          <input type="hidden" name="location" value="<?= htmlspecialchars($selectedLocation); ?>" />
+                        <?php endif; ?>
+                        <button type="submit" class="material-edit-link">Share ulang</button>
+                      </form>
                       <form method="post" class="material-delete-form" onsubmit="return confirm('Hapus history pengiriman ini?');">
                         <input type="hidden" name="action" value="delete" />
                         <input type="hidden" name="shipment_id" value="<?= (int)$shipment['id']; ?>" />
@@ -187,6 +215,13 @@ function materialStatusLabel(string $status): string
                         <?php endif; ?>
                         <button type="submit" class="material-delete-link">Delete</button>
                       </form>
+                      <?php if (!empty($shipment['share_token'])): ?>
+                        <?php $shareUrl = $baseUrl . '/recipient-share.php?token=' . urlencode($shipment['share_token']); ?>
+                        <div class="material-share-link" style="flex-basis:100%; margin-top:8px;">
+                          <label style="display:block; margin-bottom:4px; font-size:0.75rem; color:#64748b;">Link Second Party (sekali pakai)</label>
+                          <input type="text" value="<?= htmlspecialchars($shareUrl); ?>" readonly style="width:min(100%, 520px); padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px;" />
+                        </div>
+                      <?php endif; ?>
                     <?php endif; ?>
                   </div>
                 </article>

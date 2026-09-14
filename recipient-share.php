@@ -3,7 +3,7 @@ require __DIR__ . '/db.php';
 
 $token = trim((string)($_GET['token'] ?? $_POST['token'] ?? ''));
 $connection = getDbConnection();
-$statement = $connection->prepare('SELECT * FROM shipments WHERE share_token = ? LIMIT 1');
+$statement = $connection->prepare('SELECT * FROM shipments WHERE share_token = ? AND share_used_at IS NULL LIMIT 1');
 $statement->bind_param('s', $token);
 $statement->execute();
 $shipment = $statement->get_result()->fetch_assoc();
@@ -35,12 +35,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($receiverName === '' || $receiverUid === '' || $receiverPosition === '' || $receiverLocation === '' || $receiverSignature === '' || $receiverSignature === 'data:,') {
         $error = 'Semua data penerima dan E-Sign wajib dilengkapi.';
     } else {
-        $update = $connection->prepare('UPDATE shipments SET status = ?, receiver_name = ?, receiver_uid = ?, receiver_position = ?, receiver_location = ?, receiver_signature = ? WHERE id = ? AND share_token = ?');
+        $update = $connection->prepare('UPDATE shipments SET status = ?, receiver_name = ?, receiver_uid = ?, receiver_position = ?, receiver_location = ?, receiver_signature = ?, share_used_at = CURRENT_TIMESTAMP WHERE id = ? AND share_token = ? AND share_used_at IS NULL');
         $status = 'delivered';
         $update->bind_param('ssssssis', $status, $receiverName, $receiverUid, $receiverPosition, $receiverLocation, $receiverSignature, $shipmentId, $token);
         $update->execute();
+        $wasUpdated = $update->affected_rows === 1;
         $update->close();
         $connection->close();
+        if (!$wasUpdated) {
+          http_response_code(410);
+          exit('Link penerima sudah digunakan atau tidak tersedia lagi.');
+        }
         header('Location: shipping-document.php?id=' . $shipmentId);
         exit;
     }
